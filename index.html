@@ -95,6 +95,10 @@
             color: #ff5252;
         }
         
+        .status-demo {
+            color: #ff9800;
+        }
+        
         .main-content {
             display: flex;
             flex-wrap: wrap;
@@ -190,6 +194,11 @@
             color: white;
         }
         
+        .btn-warning {
+            background: linear-gradient(90deg, #ff9800, #ff5722);
+            color: white;
+        }
+        
         button:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -197,6 +206,12 @@
         
         button:active {
             transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
         
         .detection-results {
@@ -374,6 +389,14 @@
             h1 {
                 font-size: 2rem;
             }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
         }
         
         .accuracy-high {
@@ -388,19 +411,45 @@
             color: #ff5252;
         }
         
+        .demo-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(255, 152, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        
         .demo-face {
             position: absolute;
             border: 2px solid #feb47b;
             border-radius: 10px;
+            animation: pulse 2s infinite;
         }
         
-        .demo-face-id {
-            position: absolute;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 2px 5px;
-            font-size: 12px;
-            border-radius: 3px;
+        @keyframes pulse {
+            0% { border-color: #feb47b; }
+            50% { border-color: #ff7e5f; }
+            100% { border-color: #feb47b; }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -426,7 +475,7 @@
         <div class="status-container">
             <div class="status" id="status">
                 <i class="fas fa-sync-alt fa-spin"></i>
-                <span>Đang tải mô hình AI...</span>
+                <span>Đang khởi tạo ứng dụng...</span>
             </div>
         </div>
         
@@ -436,6 +485,7 @@
                 <div class="video-container">
                     <video id="video" width="600" height="450" autoplay muted playsinline></video>
                     <canvas id="overlay"></canvas>
+                    <div id="demoIndicator" class="demo-indicator" style="display: none;">CHẾ ĐỘ DEMO</div>
                 </div>
                 
                 <div class="controls">
@@ -448,7 +498,7 @@
                     <button id="captureButton" class="btn-success">
                         <i class="fas fa-camera"></i> Chụp ảnh
                     </button>
-                    <button id="demoButton" class="btn-secondary">
+                    <button id="demoButton" class="btn-warning">
                         <i class="fas fa-eye"></i> Chế độ Demo
                     </button>
                 </div>
@@ -516,7 +566,7 @@
             <p>Lưu ý: Ứng dụng hoạt động hoàn toàn trên trình duyệt, không lưu trữ dữ liệu hình ảnh</p>
             <p style="margin-top: 10px; font-size: 0.8rem; color: #888;">
                 <i class="fas fa-info-circle"></i> 
-                Ứng dụng có chế độ demo tự động nếu camera không khả dụng
+                Ứng dụng có chế độ demo tự động nếu camera không khả dụng hoặc mô hình AI không tải được
             </p>
         </footer>
     </div>
@@ -535,6 +585,7 @@
         let modelsLoaded = false;
         let isDemoMode = false;
         let demoInterval = null;
+        let cameraStream = null;
         
         // Các tham số nhận diện
         let detectionOptions = {
@@ -568,6 +619,7 @@
         const intervalValueElement = document.getElementById('intervalValue');
         const minConfidenceSlider = document.getElementById('minConfidence');
         const confidenceValueElement = document.getElementById('confidenceValue');
+        const demoIndicator = document.getElementById('demoIndicator');
         
         // Hàm cập nhật trạng thái
         function updateStatus(message, type = 'loading') {
@@ -578,6 +630,10 @@
             
             // Cập nhật lớp CSS dựa trên loại trạng thái
             statusElement.className = 'status';
+            
+            // Xóa tất cả các lớp trạng thái trước đó
+            statusElement.classList.remove('status-loading', 'status-ready', 'status-error', 'status-demo');
+            
             if (type === 'loading') {
                 statusElement.classList.add('status-loading');
                 icon.className = 'fas fa-sync-alt fa-spin';
@@ -588,7 +644,7 @@
                 statusElement.classList.add('status-error');
                 icon.className = 'fas fa-exclamation-circle';
             } else if (type === 'demo') {
-                statusElement.classList.add('status-ready');
+                statusElement.classList.add('status-demo');
                 icon.className = 'fas fa-eye';
             }
         }
@@ -598,16 +654,27 @@
             try {
                 updateStatus('Đang tải mô hình nhận diện khuôn mặt...', 'loading');
                 
-                // Sử dụng CDN cho các mô hình (fix lỗi 404 trên GitHub)
-                // Lưu ý: Đây là weights của face-api.js từ jsdelivr
-                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
+                // Sử dụng CDN đúng cho các mô hình face-api.js
+                // Lưu ý: weights nằm trong thư mục dist/ của face-api.js
+                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+                
+                console.log('Bắt đầu tải mô hình từ:', MODEL_URL);
                 
                 // Tải các mô hình cần thiết từ CDN
                 await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                console.log('Đã tải xong tinyFaceDetector');
+                
                 await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                console.log('Đã tải xong faceLandmark68Net');
+                
                 await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                console.log('Đã tải xong faceRecognitionNet');
+                
                 await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+                console.log('Đã tải xong faceExpressionNet');
+                
                 await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
+                console.log('Đã tải xong ageGenderNet');
                 
                 updateStatus('Mô hình AI đã sẵn sàng!', 'ready');
                 modelsLoaded = true;
@@ -617,17 +684,49 @@
                 demoButton.disabled = false;
                 
                 console.log('Tất cả mô hình đã được tải thành công từ CDN');
+                return true;
             } catch (error) {
                 console.error('Lỗi khi tải mô hình:', error);
-                updateStatus('Lỗi khi tải mô hình. Kích hoạt chế độ demo...', 'error');
                 
-                // Nếu không tải được mô hình, kích hoạt chế độ demo
-                modelsLoaded = false;
-                startButton.disabled = true;
-                demoButton.disabled = false;
-                setTimeout(() => {
-                    enableDemoMode();
-                }, 2000);
+                // Thử với CDN khác nếu CDN đầu tiên thất bại
+                try {
+                    updateStatus('Thử tải mô hình từ nguồn dự phòng...', 'loading');
+                    
+                    // Thử với CDN khác
+                    const BACKUP_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/';
+                    
+                    console.log('Thử tải mô hình từ backup URL:', BACKUP_MODEL_URL);
+                    
+                    await faceapi.nets.tinyFaceDetector.loadFromUri(BACKUP_MODEL_URL);
+                    await faceapi.nets.faceLandmark68Net.loadFromUri(BACKUP_MODEL_URL);
+                    await faceapi.nets.faceRecognitionNet.loadFromUri(BACKUP_MODEL_URL);
+                    await faceapi.nets.faceExpressionNet.loadFromUri(BACKUP_MODEL_URL);
+                    await faceapi.nets.ageGenderNet.loadFromUri(BACKUP_MODEL_URL);
+                    
+                    updateStatus('Mô hình AI đã sẵn sàng!', 'ready');
+                    modelsLoaded = true;
+                    
+                    startButton.disabled = false;
+                    demoButton.disabled = false;
+                    
+                    console.log('Tất cả mô hình đã được tải thành công từ backup CDN');
+                    return true;
+                } catch (backupError) {
+                    console.error('Lỗi khi tải mô hình từ backup:', backupError);
+                    updateStatus('Không thể tải mô hình AI. Kích hoạt chế độ demo...', 'error');
+                    
+                    // Nếu không tải được mô hình, kích hoạt chế độ demo
+                    modelsLoaded = false;
+                    startButton.disabled = true;
+                    demoButton.disabled = false;
+                    
+                    // Tự động kích hoạt chế độ demo sau 2 giây
+                    setTimeout(() => {
+                        enableDemoMode();
+                    }, 2000);
+                    
+                    return false;
+                }
             }
         }
         
@@ -641,16 +740,16 @@
                     throw new Error('Trình duyệt không hỗ trợ truy cập camera');
                 }
                 
-                const stream = await navigator.mediaDevices.getUserMedia({
+                cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
                         facingMode: 'user'
                     },
                     audio: false
                 });
                 
-                video.srcObject = stream;
+                video.srcObject = cameraStream;
                 
                 // Chờ cho video sẵn sàng
                 await new Promise((resolve, reject) => {
@@ -668,8 +767,8 @@
                 });
                 
                 // Đặt kích thước overlay bằng với video
-                overlay.width = video.videoWidth || 600;
-                overlay.height = video.videoHeight || 450;
+                overlay.width = video.videoWidth || 640;
+                overlay.height = video.videoHeight || 480;
                 
                 updateStatus('Camera đã sẵn sàng!', 'ready');
                 return true;
@@ -677,7 +776,7 @@
                 console.error('Lỗi khi truy cập camera:', error);
                 updateStatus('Không thể truy cập camera. Kích hoạt chế độ demo...', 'error');
                 
-                // Tạo video giả để demo
+                // Tạo video demo nếu không có camera
                 createDemoVideo();
                 return false;
             }
@@ -686,10 +785,20 @@
         // Tạo video demo nếu không có camera
         function createDemoVideo() {
             // Đặt kích thước cho overlay
-            overlay.width = 600;
-            overlay.height = 450;
+            overlay.width = 640;
+            overlay.height = 480;
             
             // Vẽ nền cho video demo
+            drawDemoBackground();
+            
+            updateStatus('Đang chạy chế độ demo', 'demo');
+            
+            // Kích hoạt chế độ demo
+            enableDemoMode();
+        }
+        
+        // Vẽ nền demo
+        function drawDemoBackground() {
             overlayCtx.fillStyle = '#222';
             overlayCtx.fillRect(0, 0, overlay.width, overlay.height);
             
@@ -705,11 +814,6 @@
             
             overlayCtx.font = '18px Arial';
             overlayCtx.fillText('Camera không khả dụng. Đang sử dụng chế độ demo.', overlay.width/2, overlay.height - 50);
-            
-            updateStatus('Đang chạy chế độ demo', 'demo');
-            
-            // Kích hoạt chế độ demo
-            enableDemoMode();
         }
         
         // Kích hoạt chế độ demo
@@ -717,8 +821,10 @@
             isDemoMode = true;
             modelsLoaded = true; // Cho phép nhận diện trong chế độ demo
             startButton.disabled = false;
-            stopButton.disabled = false;
-            captureButton.disabled = false;
+            stopButton.disabled = true;
+            captureButton.disabled = true;
+            demoButton.disabled = true;
+            demoIndicator.style.display = 'block';
             
             console.log('Đã kích hoạt chế độ demo');
         }
@@ -733,8 +839,7 @@
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
             
             // Vẽ nền
-            overlayCtx.fillStyle = '#222';
-            overlayCtx.fillRect(0, 0, overlay.width, overlay.height);
+            drawDemoBackground();
             
             // Vẽ các khuôn mặt demo
             demoFaces.forEach(face => {
@@ -755,10 +860,11 @@
                 // Vẽ điểm mốc (đơn giản hóa)
                 if (detectionOptions.showLandmarks) {
                     overlayCtx.fillStyle = '#4CAF50';
-                    // Vẽ các điểm mốc đơn giản
-                    for (let i = 0; i < 5; i++) {
-                        const landmarkX = face.x + face.width/2 + (i-2) * 15;
-                        const landmarkY = face.y + face.height/2;
+                    // Vẽ các điểm mốc đơn giản xung quanh khuôn mặt
+                    for (let i = 0; i < 10; i++) {
+                        const angle = (i / 10) * Math.PI * 2;
+                        const landmarkX = face.x + face.width/2 + Math.cos(angle) * 30;
+                        const landmarkY = face.y + face.height/2 + Math.sin(angle) * 40;
                         overlayCtx.beginPath();
                         overlayCtx.arc(landmarkX, landmarkY, 3, 0, Math.PI * 2);
                         overlayCtx.fill();
@@ -785,6 +891,7 @@
                     overlayCtx.font = '12px Arial';
                     overlayCtx.fillText(`${genderText}, ${face.age} tuổi`, face.x + 5, face.y + face.height + 15);
                     overlayCtx.fillText(`Biểu cảm: ${expressionText}`, face.x + 5, face.y + face.height + 35);
+                    overlayCtx.fillText(`Độ tin cậy: ${(face.confidence * 100).toFixed(1)}%`, face.x + 5, face.y + face.height + 55);
                 }
             });
             
@@ -864,6 +971,7 @@
             // Reset thống kê
             faceCountElement.textContent = '0';
             detectionTimeElement.textContent = '0ms';
+            fpsCounterElement.textContent = '0';
         }
         
         // Hàm nhận diện khuôn mặt thật
@@ -976,6 +1084,7 @@
                     <div class="no-faces">
                         <i class="fas fa-user-slash fa-3x"></i>
                         <p>Không phát hiện khuôn mặt nào</p>
+                        <p>Hãy đảm bảo khuôn mặt nằm trong khung hình</p>
                     </div>
                 `;
                 return;
@@ -1154,10 +1263,11 @@
             }
             
             // Tắt video stream nếu có
-            if (video.srcObject) {
-                const tracks = video.srcObject.getTracks();
+            if (cameraStream) {
+                const tracks = cameraStream.getTracks();
                 tracks.forEach(track => track.stop());
                 video.srcObject = null;
+                cameraStream = null;
             }
             
             // Kích hoạt chế độ demo
@@ -1166,6 +1276,8 @@
             startButton.disabled = false;
             stopButton.disabled = true;
             captureButton.disabled = true;
+            demoButton.disabled = true;
+            demoIndicator.style.display = 'block';
             
             updateStatus('Chế độ demo đã sẵn sàng', 'demo');
         }
@@ -1210,8 +1322,11 @@
             });
             
             // Tải mô hình AI và khởi động camera
-            await loadModels();
-            await startCamera();
+            const modelsLoadedSuccess = await loadModels();
+            
+            if (modelsLoadedSuccess) {
+                await startCamera();
+            }
             
             console.log('Ứng dụng đã sẵn sàng!');
         }
@@ -1226,8 +1341,8 @@
             }
             
             // Dừng tất cả các track camera
-            if (video.srcObject) {
-                const tracks = video.srcObject.getTracks();
+            if (cameraStream) {
+                const tracks = cameraStream.getTracks();
                 tracks.forEach(track => track.stop());
             }
         });
