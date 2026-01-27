@@ -387,6 +387,21 @@
         .accuracy-low {
             color: #ff5252;
         }
+        
+        .demo-face {
+            position: absolute;
+            border: 2px solid #feb47b;
+            border-radius: 10px;
+        }
+        
+        .demo-face-id {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 5px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
@@ -432,6 +447,9 @@
                     </button>
                     <button id="captureButton" class="btn-success">
                         <i class="fas fa-camera"></i> Chụp ảnh
+                    </button>
+                    <button id="demoButton" class="btn-secondary">
+                        <i class="fas fa-eye"></i> Chế độ Demo
                     </button>
                 </div>
                 
@@ -496,6 +514,10 @@
         <footer>
             <p>Ứng dụng Nhận Diện Khuôn Mặt &copy; 2023 | Sử dụng Face-API.js & TensorFlow.js</p>
             <p>Lưu ý: Ứng dụng hoạt động hoàn toàn trên trình duyệt, không lưu trữ dữ liệu hình ảnh</p>
+            <p style="margin-top: 10px; font-size: 0.8rem; color: #888;">
+                <i class="fas fa-info-circle"></i> 
+                Ứng dụng có chế độ demo tự động nếu camera không khả dụng
+            </p>
         </footer>
     </div>
 
@@ -511,6 +533,8 @@
         let fps = 0;
         let lastFpsUpdate = Date.now();
         let modelsLoaded = false;
+        let isDemoMode = false;
+        let demoInterval = null;
         
         // Các tham số nhận diện
         let detectionOptions = {
@@ -520,10 +544,18 @@
             minConfidence: 0.5
         };
         
+        // Dữ liệu demo (khuôn mặt ảo cho chế độ demo)
+        const demoFaces = [
+            { id: 1, x: 150, y: 100, width: 120, height: 150, age: 28, gender: 'male', expression: 'happy', confidence: 0.92 },
+            { id: 2, x: 350, y: 120, width: 110, height: 140, age: 35, gender: 'female', expression: 'neutral', confidence: 0.88 },
+            { id: 3, x: 500, y: 90, width: 100, height: 130, age: 22, gender: 'male', expression: 'surprised', confidence: 0.85 }
+        ];
+        
         // Các phần tử DOM
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
         const captureButton = document.getElementById('captureButton');
+        const demoButton = document.getElementById('demoButton');
         const statusElement = document.getElementById('status');
         const faceCountElement = document.getElementById('faceCount');
         const detectionTimeElement = document.getElementById('detectionTime');
@@ -555,31 +587,47 @@
             } else if (type === 'error') {
                 statusElement.classList.add('status-error');
                 icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'demo') {
+                statusElement.classList.add('status-ready');
+                icon.className = 'fas fa-eye';
             }
         }
         
-        // Hàm tải mô hình AI
+        // Hàm tải mô hình AI - Sử dụng CDN thay vì /models
         async function loadModels() {
             try {
                 updateStatus('Đang tải mô hình nhận diện khuôn mặt...', 'loading');
                 
-                // Tải các mô hình cần thiết
-                await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
-                await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
-                await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
-                await faceapi.nets.faceExpressionNet.loadFromUri('/models');
-                await faceapi.nets.ageGenderNet.loadFromUri('/models');
+                // Sử dụng CDN cho các mô hình (fix lỗi 404 trên GitHub)
+                // Lưu ý: Đây là weights của face-api.js từ jsdelivr
+                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights/';
+                
+                // Tải các mô hình cần thiết từ CDN
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+                await faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL);
                 
                 updateStatus('Mô hình AI đã sẵn sàng!', 'ready');
                 modelsLoaded = true;
                 
                 // Kích hoạt nút bắt đầu
                 startButton.disabled = false;
+                demoButton.disabled = false;
                 
-                console.log('Tất cả mô hình đã được tải thành công');
+                console.log('Tất cả mô hình đã được tải thành công từ CDN');
             } catch (error) {
                 console.error('Lỗi khi tải mô hình:', error);
-                updateStatus('Lỗi khi tải mô hình. Vui lòng tải lại trang.', 'error');
+                updateStatus('Lỗi khi tải mô hình. Kích hoạt chế độ demo...', 'error');
+                
+                // Nếu không tải được mô hình, kích hoạt chế độ demo
+                modelsLoaded = false;
+                startButton.disabled = true;
+                demoButton.disabled = false;
+                setTimeout(() => {
+                    enableDemoMode();
+                }, 2000);
             }
         }
         
@@ -587,6 +635,11 @@
         async function startCamera() {
             try {
                 updateStatus('Đang kết nối với camera...', 'loading');
+                
+                // Kiểm tra xem trình duyệt có hỗ trợ getUserMedia không
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Trình duyệt không hỗ trợ truy cập camera');
+                }
                 
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -600,21 +653,29 @@
                 video.srcObject = stream;
                 
                 // Chờ cho video sẵn sàng
-                await new Promise((resolve) => {
+                await new Promise((resolve, reject) => {
                     video.onloadedmetadata = () => {
                         resolve();
                     };
+                    video.onerror = () => {
+                        reject(new Error('Lỗi khi tải video'));
+                    };
+                    
+                    // Timeout sau 5 giây
+                    setTimeout(() => {
+                        reject(new Error('Timeout khi tải video'));
+                    }, 5000);
                 });
                 
                 // Đặt kích thước overlay bằng với video
-                overlay.width = video.videoWidth;
-                overlay.height = video.videoHeight;
+                overlay.width = video.videoWidth || 600;
+                overlay.height = video.videoHeight || 450;
                 
                 updateStatus('Camera đã sẵn sàng!', 'ready');
                 return true;
             } catch (error) {
                 console.error('Lỗi khi truy cập camera:', error);
-                updateStatus('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.', 'error');
+                updateStatus('Không thể truy cập camera. Kích hoạt chế độ demo...', 'error');
                 
                 // Tạo video giả để demo
                 createDemoVideo();
@@ -624,20 +685,126 @@
         
         // Tạo video demo nếu không có camera
         function createDemoVideo() {
+            // Đặt kích thước cho overlay
             overlay.width = 600;
             overlay.height = 450;
             
-            // Vẽ nền cho video
-            overlayCtx.fillStyle = '#333';
+            // Vẽ nền cho video demo
+            overlayCtx.fillStyle = '#222';
             overlayCtx.fillRect(0, 0, overlay.width, overlay.height);
-            overlayCtx.fillStyle = '#fff';
-            overlayCtx.font = '20px Arial';
-            overlayCtx.textAlign = 'center';
-            overlayCtx.fillText('Camera không khả dụng. Đang sử dụng chế độ demo.', overlay.width/2, overlay.height/2);
             
-            updateStatus('Đang chạy chế độ demo (không có camera thật)', 'ready');
-            modelsLoaded = true;
+            // Vẽ tiêu đề demo
+            overlayCtx.fillStyle = '#fff';
+            overlayCtx.font = '24px Arial';
+            overlayCtx.textAlign = 'center';
+            overlayCtx.fillText('CHẾ ĐỘ DEMO', overlay.width/2, 50);
+            
+            // Vẽ hình ảnh mặt cười
+            overlayCtx.font = '120px Arial';
+            overlayCtx.fillText('😊', overlay.width/2, overlay.height/2);
+            
+            overlayCtx.font = '18px Arial';
+            overlayCtx.fillText('Camera không khả dụng. Đang sử dụng chế độ demo.', overlay.width/2, overlay.height - 50);
+            
+            updateStatus('Đang chạy chế độ demo', 'demo');
+            
+            // Kích hoạt chế độ demo
+            enableDemoMode();
+        }
+        
+        // Kích hoạt chế độ demo
+        function enableDemoMode() {
+            isDemoMode = true;
+            modelsLoaded = true; // Cho phép nhận diện trong chế độ demo
             startButton.disabled = false;
+            stopButton.disabled = false;
+            captureButton.disabled = false;
+            
+            console.log('Đã kích hoạt chế độ demo');
+        }
+        
+        // Chạy chế độ demo (tạo khuôn mặt ảo)
+        function runDemoDetection() {
+            if (!isDemoMode || !isDetecting) return;
+            
+            const startTime = performance.now();
+            
+            // Xóa canvas trước khi vẽ
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            
+            // Vẽ nền
+            overlayCtx.fillStyle = '#222';
+            overlayCtx.fillRect(0, 0, overlay.width, overlay.height);
+            
+            // Vẽ các khuôn mặt demo
+            demoFaces.forEach(face => {
+                // Vẽ khung khuôn mặt
+                if (detectionOptions.showBoxes) {
+                    overlayCtx.strokeStyle = '#feb47b';
+                    overlayCtx.lineWidth = 2;
+                    overlayCtx.strokeRect(face.x, face.y, face.width, face.height);
+                    
+                    // Vẽ nhãn độ chính xác
+                    overlayCtx.fillStyle = 'rgba(254, 180, 123, 0.8)';
+                    overlayCtx.fillRect(face.x, face.y - 25, 80, 25);
+                    overlayCtx.fillStyle = '#000';
+                    overlayCtx.font = '14px Arial';
+                    overlayCtx.fillText(`${(face.confidence * 100).toFixed(1)}%`, face.x + 5, face.y - 8);
+                }
+                
+                // Vẽ điểm mốc (đơn giản hóa)
+                if (detectionOptions.showLandmarks) {
+                    overlayCtx.fillStyle = '#4CAF50';
+                    // Vẽ các điểm mốc đơn giản
+                    for (let i = 0; i < 5; i++) {
+                        const landmarkX = face.x + face.width/2 + (i-2) * 15;
+                        const landmarkY = face.y + face.height/2;
+                        overlayCtx.beginPath();
+                        overlayCtx.arc(landmarkX, landmarkY, 3, 0, Math.PI * 2);
+                        overlayCtx.fill();
+                    }
+                }
+                
+                // Vẽ thông tin biểu cảm, tuổi, giới tính
+                if (detectionOptions.showExpressions) {
+                    const genderText = face.gender === 'male' ? 'Nam' : 'Nữ';
+                    const expressionTranslations = {
+                        'happy': 'Vui vẻ',
+                        'neutral': 'Trung tính',
+                        'surprised': 'Ngạc nhiên',
+                        'sad': 'Buồn bã',
+                        'angry': 'Tức giận',
+                        'fearful': 'Sợ hãi',
+                        'disgusted': 'Khó chịu'
+                    };
+                    const expressionText = expressionTranslations[face.expression] || face.expression;
+                    
+                    overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    overlayCtx.fillRect(face.x, face.y + face.height, 150, 60);
+                    overlayCtx.fillStyle = '#fff';
+                    overlayCtx.font = '12px Arial';
+                    overlayCtx.fillText(`${genderText}, ${face.age} tuổi`, face.x + 5, face.y + face.height + 15);
+                    overlayCtx.fillText(`Biểu cảm: ${expressionText}`, face.x + 5, face.y + face.height + 35);
+                }
+            });
+            
+            const detectionTime = performance.now() - startTime;
+            
+            // Cập nhật thống kê
+            updateStats(demoFaces.length, detectionTime);
+            
+            // Cập nhật kết quả chi tiết
+            updateDemoResults();
+            
+            // Đếm FPS
+            updateFps();
+            
+            // Lặp lại sau khoảng thời gian đã đặt
+            demoInterval = setTimeout(() => {
+                if (isDetecting && isDemoMode) {
+                    runDemoDetection();
+                }
+            }, detectionInterval);
         }
         
         // Hàm bắt đầu nhận diện
@@ -651,11 +818,16 @@
             startButton.disabled = true;
             stopButton.disabled = false;
             captureButton.disabled = false;
+            demoButton.disabled = true;
             
-            updateStatus('Đang nhận diện khuôn mặt...', 'loading');
-            
-            // Bắt đầu vòng lặp nhận diện
-            detectFaces();
+            if (isDemoMode) {
+                updateStatus('Đang nhận diện (chế độ DEMO)...', 'demo');
+                runDemoDetection();
+            } else {
+                updateStatus('Đang nhận diện khuôn mặt...', 'loading');
+                // Bắt đầu vòng lặp nhận diện thật
+                detectFaces();
+            }
         }
         
         // Hàm dừng nhận diện
@@ -664,11 +836,21 @@
             startButton.disabled = false;
             stopButton.disabled = true;
             captureButton.disabled = true;
+            demoButton.disabled = false;
+            
+            if (demoInterval) {
+                clearTimeout(demoInterval);
+                demoInterval = null;
+            }
             
             // Xóa canvas
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
             
-            updateStatus('Đã dừng nhận diện', 'ready');
+            if (isDemoMode) {
+                updateStatus('Đã dừng nhận diện (DEMO)', 'demo');
+            } else {
+                updateStatus('Đã dừng nhận diện', 'ready');
+            }
             
             // Xóa kết quả
             resultsContainer.innerHTML = `
@@ -684,9 +866,9 @@
             detectionTimeElement.textContent = '0ms';
         }
         
-        // Hàm nhận diện khuôn mặt chính
+        // Hàm nhận diện khuôn mặt thật
         async function detectFaces() {
-            if (!isDetecting) return;
+            if (!isDetecting || isDemoMode) return;
             
             const startTime = performance.now();
             
@@ -761,7 +943,7 @@
             
             // Lặp lại sau khoảng thời gian đã đặt
             setTimeout(() => {
-                if (isDetecting) {
+                if (isDetecting && !isDemoMode) {
                     requestAnimationFrame(detectFaces);
                 }
             }, detectionInterval);
@@ -787,7 +969,7 @@
             }
         }
         
-        // Hàm cập nhật kết quả chi tiết
+        // Hàm cập nhật kết quả chi tiết (cho nhận diện thật)
         function updateResults(detections) {
             if (detections.length === 0) {
                 resultsContainer.innerHTML = `
@@ -868,6 +1050,55 @@
             resultsContainer.innerHTML = resultsHTML;
         }
         
+        // Hàm cập nhật kết quả demo
+        function updateDemoResults() {
+            let resultsHTML = '';
+            
+            demoFaces.forEach((face, index) => {
+                let accuracyClass = 'accuracy-low';
+                if (face.confidence >= 0.8) accuracyClass = 'accuracy-high';
+                else if (face.confidence >= 0.6) accuracyClass = 'accuracy-medium';
+                
+                const genderText = face.gender === 'male' ? 'Nam' : 'Nữ';
+                const expressionTranslations = {
+                    'happy': 'Vui vẻ',
+                    'neutral': 'Trung tính',
+                    'surprised': 'Ngạc nhiên',
+                    'sad': 'Buồn bã',
+                    'angry': 'Tức giận',
+                    'fearful': 'Sợ hãi',
+                    'disgusted': 'Khó chịu'
+                };
+                const translatedExpression = expressionTranslations[face.expression] || face.expression;
+                
+                resultsHTML += `
+                    <div class="face-card">
+                        <div class="face-id">Khuôn mặt Demo #${index + 1}</div>
+                        <div class="face-details">
+                            <div class="face-detail">
+                                <span class="detail-label">Độ chính xác:</span>
+                                <span class="detail-value ${accuracyClass}">${(face.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Biểu cảm:</span>
+                                <span class="detail-value">${translatedExpression}</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Giới tính:</span>
+                                <span class="detail-value">${genderText}</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Tuổi ước tính:</span>
+                                <span class="detail-value">${face.age}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = resultsHTML;
+        }
+        
         // Hàm chụp ảnh
         function captureImage() {
             if (!isDetecting) {
@@ -877,22 +1108,66 @@
             
             // Tạo canvas tạm thời
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = overlay.width;
-            tempCanvas.height = overlay.height;
-            const tempCtx = tempCanvas.getContext('2d');
             
-            // Vẽ video và overlay lên canvas
-            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
-            tempCtx.drawImage(overlay, 0, 0);
+            if (isDemoMode) {
+                tempCanvas.width = overlay.width;
+                tempCanvas.height = overlay.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Vẽ nền demo
+                tempCtx.fillStyle = '#222';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Vẽ tiêu đề
+                tempCtx.fillStyle = '#fff';
+                tempCtx.font = '24px Arial';
+                tempCtx.textAlign = 'center';
+                tempCtx.fillText('CHẾ ĐỘ DEMO - KẾT QUẢ NHẬN DIỆN', tempCanvas.width/2, 40);
+                
+                // Vẽ overlay
+                tempCtx.drawImage(overlay, 0, 0);
+            } else {
+                tempCanvas.width = video.videoWidth || overlay.width;
+                tempCanvas.height = video.videoHeight || overlay.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Vẽ video và overlay lên canvas
+                tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                tempCtx.drawImage(overlay, 0, 0);
+            }
             
             // Tạo liên kết tải về
             const link = document.createElement('a');
-            link.download = `face-detection-${new Date().getTime()}.png`;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.download = `face-detection-${timestamp}.png`;
             link.href = tempCanvas.toDataURL('image/png');
             link.click();
             
             // Thông báo
             alert('Đã lưu ảnh thành công!');
+        }
+        
+        // Hàm chuyển sang chế độ demo
+        function switchToDemoMode() {
+            if (isDetecting) {
+                stopDetection();
+            }
+            
+            // Tắt video stream nếu có
+            if (video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            
+            // Kích hoạt chế độ demo
+            isDemoMode = true;
+            createDemoVideo();
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            captureButton.disabled = true;
+            
+            updateStatus('Chế độ demo đã sẵn sàng', 'demo');
         }
         
         // Hàm khởi tạo ứng dụng
@@ -903,11 +1178,13 @@
             startButton.disabled = true;
             stopButton.disabled = true;
             captureButton.disabled = true;
+            demoButton.disabled = true;
             
             // Thiết lập sự kiện cho các nút
             startButton.addEventListener('click', startDetection);
             stopButton.addEventListener('click', stopDetection);
             captureButton.addEventListener('click', captureImage);
+            demoButton.addEventListener('click', switchToDemoMode);
             
             // Thiết lập sự kiện cho các tùy chọn
             showLandmarksCheckbox.addEventListener('change', (e) => {
@@ -941,6 +1218,19 @@
         
         // Khởi chạy ứng dụng khi trang đã tải xong
         document.addEventListener('DOMContentLoaded', initApp);
+        
+        // Xử lý khi người dùng rời trang
+        window.addEventListener('beforeunload', () => {
+            if (isDetecting) {
+                stopDetection();
+            }
+            
+            // Dừng tất cả các track camera
+            if (video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+            }
+        });
     </script>
 </body>
 </html>
