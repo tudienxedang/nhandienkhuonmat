@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ứng dụng Nhận Diện Khuôn Mặt - Face Recognition</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <!-- Sử dụng TensorFlow.js 2.x cho tương thích với face-api.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.8.6/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <style>
         * {
@@ -424,19 +425,6 @@
             z-index: 10;
         }
         
-        .demo-face {
-            position: absolute;
-            border: 2px solid #feb47b;
-            border-radius: 10px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { border-color: #feb47b; }
-            50% { border-color: #ff7e5f; }
-            100% { border-color: #feb47b; }
-        }
-        
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -451,10 +439,28 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        
+        .warning-banner {
+            background-color: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        .warning-banner i {
+            color: #ffc107;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="warning-banner">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Lưu ý:</strong> Ứng dụng có thể chạy chậm lần đầu do cần tải mô hình AI. Vui lòng kiên nhẫn chờ đợi.
+        </div>
+        
         <header>
             <h1><i class="fas fa-robot"></i> Ứng dụng Nhận Diện Khuôn Mặt</h1>
             <p class="subtitle">Sử dụng công nghệ AI tiên tiến để nhận diện khuôn mặt với độ chính xác cao</p>
@@ -655,8 +661,8 @@
                 updateStatus('Đang tải mô hình nhận diện khuôn mặt...', 'loading');
                 
                 // Sử dụng CDN đúng cho các mô hình face-api.js
-                // Lưu ý: weights nằm trong thư mục dist/ của face-api.js
-                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/';
+                // Lưu ý: Sử dụng jsdelivr thay vì raw.githubusercontent vì CORS
+                const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/';
                 
                 console.log('Bắt đầu tải mô hình từ:', MODEL_URL);
                 
@@ -687,46 +693,19 @@
                 return true;
             } catch (error) {
                 console.error('Lỗi khi tải mô hình:', error);
+                updateStatus('Không thể tải mô hình AI. Kích hoạt chế độ demo...', 'error');
                 
-                // Thử với CDN khác nếu CDN đầu tiên thất bại
-                try {
-                    updateStatus('Thử tải mô hình từ nguồn dự phòng...', 'loading');
-                    
-                    // Thử với CDN khác
-                    const BACKUP_MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights/';
-                    
-                    console.log('Thử tải mô hình từ backup URL:', BACKUP_MODEL_URL);
-                    
-                    await faceapi.nets.tinyFaceDetector.loadFromUri(BACKUP_MODEL_URL);
-                    await faceapi.nets.faceLandmark68Net.loadFromUri(BACKUP_MODEL_URL);
-                    await faceapi.nets.faceRecognitionNet.loadFromUri(BACKUP_MODEL_URL);
-                    await faceapi.nets.faceExpressionNet.loadFromUri(BACKUP_MODEL_URL);
-                    await faceapi.nets.ageGenderNet.loadFromUri(BACKUP_MODEL_URL);
-                    
-                    updateStatus('Mô hình AI đã sẵn sàng!', 'ready');
-                    modelsLoaded = true;
-                    
-                    startButton.disabled = false;
-                    demoButton.disabled = false;
-                    
-                    console.log('Tất cả mô hình đã được tải thành công từ backup CDN');
-                    return true;
-                } catch (backupError) {
-                    console.error('Lỗi khi tải mô hình từ backup:', backupError);
-                    updateStatus('Không thể tải mô hình AI. Kích hoạt chế độ demo...', 'error');
-                    
-                    // Nếu không tải được mô hình, kích hoạt chế độ demo
-                    modelsLoaded = false;
-                    startButton.disabled = true;
-                    demoButton.disabled = false;
-                    
-                    // Tự động kích hoạt chế độ demo sau 2 giây
-                    setTimeout(() => {
-                        enableDemoMode();
-                    }, 2000);
-                    
-                    return false;
-                }
+                // Nếu không tải được mô hình, kích hoạt chế độ demo
+                modelsLoaded = false;
+                startButton.disabled = true;
+                demoButton.disabled = false;
+                
+                // Tự động kích hoạt chế độ demo sau 2 giây
+                setTimeout(() => {
+                    enableDemoMode();
+                }, 2000);
+                
+                return false;
             }
         }
         
@@ -974,7 +953,7 @@
             fpsCounterElement.textContent = '0';
         }
         
-        // Hàm nhận diện khuôn mặt thật
+        // Hàm nhận diện khuôn mặt thật - đã sửa lỗi tương thích
         async function detectFaces() {
             if (!isDetecting || isDemoMode) return;
             
@@ -984,69 +963,115 @@
                 // Xóa canvas trước khi vẽ
                 overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
                 
-                // Phát hiện khuôn mặt
+                // Phát hiện khuôn mặt với các tùy chọn đơn giản hơn để tránh lỗi
                 const detections = await faceapi.detectAllFaces(
                     video, 
                     new faceapi.TinyFaceDetectorOptions({ 
                         inputSize: 320, 
                         scoreThreshold: detectionOptions.minConfidence 
                     })
-                )
-                .withFaceLandmarks()
-                .withFaceExpressions()
-                .withAgeAndGender();
+                );
                 
-                const detectionTime = performance.now() - startTime;
-                
-                // Vẽ kết quả lên canvas
-                if (detectionOptions.showBoxes) {
-                    faceapi.draw.drawDetections(overlay, detections);
-                }
-                
-                if (detectionOptions.showLandmarks) {
-                    faceapi.draw.drawFaceLandmarks(overlay, detections);
-                }
-                
-                if (detectionOptions.showExpressions) {
-                    faceapi.draw.drawFaceExpressions(overlay, detections);
-                }
-                
-                // Vẽ thông tin tuổi và giới tính
-                detections.forEach(detection => {
-                    if (detection.age && detection.gender) {
-                        const age = Math.round(detection.age);
-                        const gender = detection.gender;
-                        const genderText = gender === 'male' ? 'Nam' : 'Nữ';
-                        
-                        const box = detection.detection.box;
-                        const text = `${genderText}, ${age} tuổi`;
-                        const textWidth = overlayCtx.measureText(text).width;
-                        
-                        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                        overlayCtx.fillRect(
-                            box.x, 
-                            box.y - 25, 
-                            textWidth + 10, 
-                            25
-                        );
-                        
-                        overlayCtx.font = '16px Arial';
-                        overlayCtx.fillStyle = '#fff';
-                        overlayCtx.fillText(text, box.x + 5, box.y - 8);
+                // Kiểm tra nếu có khuôn mặt thì tiếp tục xử lý
+                if (detections && detections.length > 0) {
+                    // Lấy thêm thông tin chi tiết
+                    const detectionsWithDetails = await Promise.all(
+                        detections.map(async (detection) => {
+                            try {
+                                const landmarks = await faceapi.detectFaceLandmarks(video, detection);
+                                const expressions = await faceapi.detectFaceExpressions(video, detection);
+                                const ageAndGender = await faceapi.detectAgeAndGender(video, detection);
+                                
+                                return {
+                                    detection: detection,
+                                    landmarks: landmarks,
+                                    expressions: expressions,
+                                    age: ageAndGender ? ageAndGender.age : null,
+                                    gender: ageAndGender ? ageAndGender.gender : null
+                                };
+                            } catch (error) {
+                                console.error('Lỗi khi xử lý chi tiết khuôn mặt:', error);
+                                return {
+                                    detection: detection,
+                                    landmarks: null,
+                                    expressions: null,
+                                    age: null,
+                                    gender: null
+                                };
+                            }
+                        })
+                    );
+                    
+                    const detectionTime = performance.now() - startTime;
+                    
+                    // Vẽ kết quả lên canvas
+                    if (detectionOptions.showBoxes) {
+                        faceapi.draw.drawDetections(overlay, detections);
                     }
-                });
-                
-                // Cập nhật thống kê
-                updateStats(detections.length, detectionTime);
-                
-                // Cập nhật kết quả chi tiết
-                updateResults(detections);
+                    
+                    // Vẽ landmarks nếu có
+                    detectionsWithDetails.forEach(detail => {
+                        if (detail.landmarks && detectionOptions.showLandmarks) {
+                            faceapi.draw.drawFaceLandmarks(overlay, detail.landmarks);
+                        }
+                    });
+                    
+                    // Vẽ biểu cảm nếu có
+                    detectionsWithDetails.forEach(detail => {
+                        if (detail.expressions && detectionOptions.showExpressions) {
+                            faceapi.draw.drawFaceExpressions(overlay, detail.expressions);
+                        }
+                    });
+                    
+                    // Vẽ thông tin tuổi và giới tính
+                    detectionsWithDetails.forEach(detail => {
+                        if (detail.age && detail.gender) {
+                            const age = Math.round(detail.age);
+                            const gender = detail.gender;
+                            const genderText = gender === 'male' ? 'Nam' : 'Nữ';
+                            
+                            const box = detail.detection.box;
+                            const text = `${genderText}, ${age} tuổi`;
+                            const textWidth = overlayCtx.measureText(text).width;
+                            
+                            overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                            overlayCtx.fillRect(
+                                box.x, 
+                                box.y - 25, 
+                                textWidth + 10, 
+                                25
+                            );
+                            
+                            overlayCtx.font = '16px Arial';
+                            overlayCtx.fillStyle = '#fff';
+                            overlayCtx.fillText(text, box.x + 5, box.y - 8);
+                        }
+                    });
+                    
+                    // Cập nhật thống kê
+                    updateStats(detections.length, detectionTime);
+                    
+                    // Cập nhật kết quả chi tiết
+                    updateResults(detectionsWithDetails);
+                    
+                } else {
+                    // Không có khuôn mặt nào
+                    const detectionTime = performance.now() - startTime;
+                    updateStats(0, detectionTime);
+                    updateResults([]);
+                }
                 
                 // Đếm FPS
                 updateFps();
                 
             } catch (error) {
                 console.error('Lỗi trong quá trình nhận diện:', error);
+                // Nếu có lỗi, chuyển sang chế độ demo
+                if (!isDemoMode) {
+                    alert('Lỗi khi nhận diện khuôn mặt. Đang chuyển sang chế độ demo...');
+                    switchToDemoMode();
+                    startDetection();
+                }
             }
             
             // Lặp lại sau khoảng thời gian đã đặt
@@ -1078,8 +1103,8 @@
         }
         
         // Hàm cập nhật kết quả chi tiết (cho nhận diện thật)
-        function updateResults(detections) {
-            if (detections.length === 0) {
+        function updateResults(detectionsWithDetails) {
+            if (!detectionsWithDetails || detectionsWithDetails.length === 0) {
                 resultsContainer.innerHTML = `
                     <div class="no-faces">
                         <i class="fas fa-user-slash fa-3x"></i>
@@ -1092,19 +1117,19 @@
             
             let resultsHTML = '';
             
-            detections.forEach((detection, index) => {
+            detectionsWithDetails.forEach((detail, index) => {
                 // Xác định độ chính xác
-                const score = detection.detection.score;
+                const score = detail.detection.score;
                 let accuracyClass = 'accuracy-low';
                 if (score >= 0.8) accuracyClass = 'accuracy-high';
                 else if (score >= 0.6) accuracyClass = 'accuracy-medium';
                 
                 // Xác định biểu cảm chính
-                const expressions = detection.expressions;
                 let dominantExpression = 'Trung tính';
-                let maxExpressionScore = 0;
-                
-                if (expressions) {
+                if (detail.expressions) {
+                    const expressions = detail.expressions;
+                    let maxExpressionScore = 0;
+                    
                     for (const [expression, score] of Object.entries(expressions)) {
                         if (score > maxExpressionScore) {
                             maxExpressionScore = score;
@@ -1127,8 +1152,8 @@
                 const translatedExpression = expressionTranslations[dominantExpression] || dominantExpression;
                 
                 // Xác định giới tính và tuổi
-                const age = detection.age ? Math.round(detection.age) : 'Không xác định';
-                const gender = detection.gender || 'Không xác định';
+                const age = detail.age ? Math.round(detail.age) : 'Không xác định';
+                const gender = detail.gender || 'Không xác định';
                 const genderText = gender === 'male' ? 'Nam' : (gender === 'female' ? 'Nữ' : 'Không xác định');
                 
                 resultsHTML += `
