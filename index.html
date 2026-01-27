@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng Nhận Diện Khuôn Mặt - Face Recognition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2a3a8c, #3a4aac);
+            color: #f0f0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 20px;
+        }
+        
+        .app-description {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .app-description h2 {
+            color: #feb47b;
+            margin-bottom: 10px;
+        }
+        
+        .status-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .status-loading {
+            color: #ffcc00;
+        }
+        
+        .status-ready {
+            color: #4CAF50;
+        }
+        
+        .status-error {
+            color: #ff5252;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .video-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .results-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #feb47b;
+            border-bottom: 2px solid rgba(254, 180, 123, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            background-color: #000;
+        }
+        
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 15px;
+        }
+        
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-success {
+            background: linear-gradient(90deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .detection-results {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .detection-results::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .detection-results::-webkit-scrollbar-thumb {
+            background-color: rgba(254, 180, 123, 0.5);
+            border-radius: 4px;
+        }
+        
+        .face-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #feb47b;
+        }
+        
+        .face-id {
+            font-weight: bold;
+            color: #feb47b;
+            margin-bottom: 5px;
+        }
+        
+        .face-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .face-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #aaa;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #f0f0f0;
+        }
+        
+        .no-faces {
+            text-align: center;
+            padding: 30px;
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        .detection-stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #feb47b;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        
+        .options {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .options h3 {
+            margin-bottom: 15px;
+            color: #feb47b;
+        }
+        
+        .option-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 10px 15px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .option-item label {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        
+        .option-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .option-item input[type="range"] {
+            flex: 1;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        
+        .option-value {
+            min-width: 40px;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #aaa;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .feature-item {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-item i {
+            color: #feb47b;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        .accuracy-high {
+            color: #4CAF50;
+        }
+        
+        .accuracy-medium {
+            color: #ff9800;
+        }
+        
+        .accuracy-low {
+            color: #ff5252;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-robot"></i> Ứng dụng Nhận Diện Khuôn Mặt</h1>
+            <p class="subtitle">Sử dụng công nghệ AI tiên tiến để nhận diện khuôn mặt với độ chính xác cao</p>
+        </header>
+        
+        <div class="app-description">
+            <h2>Công nghệ tiên tiến</h2>
+            <p>Ứng dụng này sử dụng thư viện Face-API.js tích hợp TensorFlow.js, cung cấp khả năng nhận diện khuôn mặt thời gian thực với các tính năng hiện đại nhất:</p>
+            <div class="feature-list">
+                <div class="feature-item"><i class="fas fa-check-circle"></i> Phát hiện khuôn mặt đa điểm</div>
+                <div class="feature-item"><i class="fas fa-check-circle"></i> Nhận diện điểm mốc trên khuôn mặt</div>
+                <div class="feature-item"><i class="fas fa-check-circle"></i> Ước tính tuổi và giới tính</div>
+                <div class="feature-item"><i class="fas fa-check-circle"></i> Nhận diện biểu cảm khuôn mặt</div>
+                <div class="feature-item"><i class="fas fa-check-circle"></i> So khớp khuôn mặt với độ chính xác cao</div>
+            </div>
+        </div>
+        
+        <div class="status-container">
+            <div class="status" id="status">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Đang tải mô hình AI...</span>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="video-section">
+                <h2 class="section-title"><i class="fas fa-video"></i> Camera Trực Tiếp</h2>
+                <div class="video-container">
+                    <video id="video" width="600" height="450" autoplay muted playsinline></video>
+                    <canvas id="overlay"></canvas>
+                </div>
+                
+                <div class="controls">
+                    <button id="startButton" class="btn-primary">
+                        <i class="fas fa-play"></i> Bắt đầu nhận diện
+                    </button>
+                    <button id="stopButton" class="btn-secondary">
+                        <i class="fas fa-stop"></i> Dừng nhận diện
+                    </button>
+                    <button id="captureButton" class="btn-success">
+                        <i class="fas fa-camera"></i> Chụp ảnh
+                    </button>
+                </div>
+                
+                <div class="detection-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="faceCount">0</div>
+                        <div class="stat-label">Khuôn mặt</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="detectionTime">0ms</div>
+                        <div class="stat-label">Thời gian xử lý</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="fpsCounter">0</div>
+                        <div class="stat-label">FPS</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="results-section">
+                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Kết quả nhận diện</h2>
+                <div class="detection-results" id="resultsContainer">
+                    <div class="no-faces">
+                        <i class="fas fa-user-slash fa-3x"></i>
+                        <p>Chưa phát hiện khuôn mặt nào</p>
+                        <p>Hãy bật camera và bắt đầu nhận diện</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="options">
+            <h3><i class="fas fa-cogs"></i> Tùy chọn nhận diện</h3>
+            <div class="option-group">
+                <div class="option-item">
+                    <input type="checkbox" id="showLandmarks" checked>
+                    <label for="showLandmarks">Hiển thị điểm mốc khuôn mặt</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="showBoxes" checked>
+                    <label for="showBoxes">Hiển thị khung khuôn mặt</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="showExpressions" checked>
+                    <label for="showExpressions">Hiển thị biểu cảm</label>
+                </div>
+            </div>
+            <div class="option-group">
+                <div class="option-item">
+                    <label for="detectionInterval">Tần suất nhận diện:</label>
+                    <input type="range" id="detectionInterval" min="50" max="500" value="100" step="50">
+                    <span class="option-value" id="intervalValue">100ms</span>
+                </div>
+                <div class="option-item">
+                    <label for="minConfidence">Độ tin cậy tối thiểu:</label>
+                    <input type="range" id="minConfidence" min="0.1" max="1.0" value="0.5" step="0.1">
+                    <span class="option-value" id="confidenceValue">0.5</span>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Ứng dụng Nhận Diện Khuôn Mặt &copy; 2023 | Sử dụng Face-API.js & TensorFlow.js</p>
+            <p>Lưu ý: Ứng dụng hoạt động hoàn toàn trên trình duyệt, không lưu trữ dữ liệu hình ảnh</p>
+        </footer>
+    </div>
+
+    <script>
+        // Khai báo các biến toàn cục
+        let video = document.getElementById('video');
+        let overlay = document.getElementById('overlay');
+        let overlayCtx = overlay.getContext('2d');
+        let isDetecting = false;
+        let detectionInterval = 100; // ms
+        let lastDetectionTime = 0;
+        let frameCount = 0;
+        let fps = 0;
+        let lastFpsUpdate = Date.now();
+        let modelsLoaded = false;
+        
+        // Các tham số nhận diện
+        let detectionOptions = {
+            showLandmarks: true,
+            showBoxes: true,
+            showExpressions: true,
+            minConfidence: 0.5
+        };
+        
+        // Các phần tử DOM
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const captureButton = document.getElementById('captureButton');
+        const statusElement = document.getElementById('status');
+        const faceCountElement = document.getElementById('faceCount');
+        const detectionTimeElement = document.getElementById('detectionTime');
+        const fpsCounterElement = document.getElementById('fpsCounter');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const showLandmarksCheckbox = document.getElementById('showLandmarks');
+        const showBoxesCheckbox = document.getElementById('showBoxes');
+        const showExpressionsCheckbox = document.getElementById('showExpressions');
+        const detectionIntervalSlider = document.getElementById('detectionInterval');
+        const intervalValueElement = document.getElementById('intervalValue');
+        const minConfidenceSlider = document.getElementById('minConfidence');
+        const confidenceValueElement = document.getElementById('confidenceValue');
+        
+        // Hàm cập nhật trạng thái
+        function updateStatus(message, type = 'loading') {
+            const icon = statusElement.querySelector('i');
+            const text = statusElement.querySelector('span');
+            
+            text.textContent = message;
+            
+            // Cập nhật lớp CSS dựa trên loại trạng thái
+            statusElement.className = 'status';
+            if (type === 'loading') {
+                statusElement.classList.add('status-loading');
+                icon.className = 'fas fa-sync-alt fa-spin';
+            } else if (type === 'ready') {
+                statusElement.classList.add('status-ready');
+                icon.className = 'fas fa-check-circle';
+            } else if (type === 'error') {
+                statusElement.classList.add('status-error');
+                icon.className = 'fas fa-exclamation-circle';
+            }
+        }
+        
+        // Hàm tải mô hình AI
+        async function loadModels() {
+            try {
+                updateStatus('Đang tải mô hình nhận diện khuôn mặt...', 'loading');
+                
+                // Tải các mô hình cần thiết
+                await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+                await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
+                await faceapi.nets.faceExpressionNet.loadFromUri('/models');
+                await faceapi.nets.ageGenderNet.loadFromUri('/models');
+                
+                updateStatus('Mô hình AI đã sẵn sàng!', 'ready');
+                modelsLoaded = true;
+                
+                // Kích hoạt nút bắt đầu
+                startButton.disabled = false;
+                
+                console.log('Tất cả mô hình đã được tải thành công');
+            } catch (error) {
+                console.error('Lỗi khi tải mô hình:', error);
+                updateStatus('Lỗi khi tải mô hình. Vui lòng tải lại trang.', 'error');
+            }
+        }
+        
+        // Hàm khởi động camera
+        async function startCamera() {
+            try {
+                updateStatus('Đang kết nối với camera...', 'loading');
+                
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    },
+                    audio: false
+                });
+                
+                video.srcObject = stream;
+                
+                // Chờ cho video sẵn sàng
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        resolve();
+                    };
+                });
+                
+                // Đặt kích thước overlay bằng với video
+                overlay.width = video.videoWidth;
+                overlay.height = video.videoHeight;
+                
+                updateStatus('Camera đã sẵn sàng!', 'ready');
+                return true;
+            } catch (error) {
+                console.error('Lỗi khi truy cập camera:', error);
+                updateStatus('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.', 'error');
+                
+                // Tạo video giả để demo
+                createDemoVideo();
+                return false;
+            }
+        }
+        
+        // Tạo video demo nếu không có camera
+        function createDemoVideo() {
+            overlay.width = 600;
+            overlay.height = 450;
+            
+            // Vẽ nền cho video
+            overlayCtx.fillStyle = '#333';
+            overlayCtx.fillRect(0, 0, overlay.width, overlay.height);
+            overlayCtx.fillStyle = '#fff';
+            overlayCtx.font = '20px Arial';
+            overlayCtx.textAlign = 'center';
+            overlayCtx.fillText('Camera không khả dụng. Đang sử dụng chế độ demo.', overlay.width/2, overlay.height/2);
+            
+            updateStatus('Đang chạy chế độ demo (không có camera thật)', 'ready');
+            modelsLoaded = true;
+            startButton.disabled = false;
+        }
+        
+        // Hàm bắt đầu nhận diện
+        function startDetection() {
+            if (!modelsLoaded) {
+                alert('Mô hình AI chưa được tải. Vui lòng đợi...');
+                return;
+            }
+            
+            isDetecting = true;
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            captureButton.disabled = false;
+            
+            updateStatus('Đang nhận diện khuôn mặt...', 'loading');
+            
+            // Bắt đầu vòng lặp nhận diện
+            detectFaces();
+        }
+        
+        // Hàm dừng nhận diện
+        function stopDetection() {
+            isDetecting = false;
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            captureButton.disabled = true;
+            
+            // Xóa canvas
+            overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+            
+            updateStatus('Đã dừng nhận diện', 'ready');
+            
+            // Xóa kết quả
+            resultsContainer.innerHTML = `
+                <div class="no-faces">
+                    <i class="fas fa-user-slash fa-3x"></i>
+                    <p>Chưa phát hiện khuôn mặt nào</p>
+                    <p>Hãy bật camera và bắt đầu nhận diện</p>
+                </div>
+            `;
+            
+            // Reset thống kê
+            faceCountElement.textContent = '0';
+            detectionTimeElement.textContent = '0ms';
+        }
+        
+        // Hàm nhận diện khuôn mặt chính
+        async function detectFaces() {
+            if (!isDetecting) return;
+            
+            const startTime = performance.now();
+            
+            try {
+                // Xóa canvas trước khi vẽ
+                overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+                
+                // Phát hiện khuôn mặt
+                const detections = await faceapi.detectAllFaces(
+                    video, 
+                    new faceapi.TinyFaceDetectorOptions({ 
+                        inputSize: 320, 
+                        scoreThreshold: detectionOptions.minConfidence 
+                    })
+                )
+                .withFaceLandmarks()
+                .withFaceExpressions()
+                .withAgeAndGender();
+                
+                const detectionTime = performance.now() - startTime;
+                
+                // Vẽ kết quả lên canvas
+                if (detectionOptions.showBoxes) {
+                    faceapi.draw.drawDetections(overlay, detections);
+                }
+                
+                if (detectionOptions.showLandmarks) {
+                    faceapi.draw.drawFaceLandmarks(overlay, detections);
+                }
+                
+                if (detectionOptions.showExpressions) {
+                    faceapi.draw.drawFaceExpressions(overlay, detections);
+                }
+                
+                // Vẽ thông tin tuổi và giới tính
+                detections.forEach(detection => {
+                    if (detection.age && detection.gender) {
+                        const age = Math.round(detection.age);
+                        const gender = detection.gender;
+                        const genderText = gender === 'male' ? 'Nam' : 'Nữ';
+                        
+                        const box = detection.detection.box;
+                        const text = `${genderText}, ${age} tuổi`;
+                        const textWidth = overlayCtx.measureText(text).width;
+                        
+                        overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                        overlayCtx.fillRect(
+                            box.x, 
+                            box.y - 25, 
+                            textWidth + 10, 
+                            25
+                        );
+                        
+                        overlayCtx.font = '16px Arial';
+                        overlayCtx.fillStyle = '#fff';
+                        overlayCtx.fillText(text, box.x + 5, box.y - 8);
+                    }
+                });
+                
+                // Cập nhật thống kê
+                updateStats(detections.length, detectionTime);
+                
+                // Cập nhật kết quả chi tiết
+                updateResults(detections);
+                
+                // Đếm FPS
+                updateFps();
+                
+            } catch (error) {
+                console.error('Lỗi trong quá trình nhận diện:', error);
+            }
+            
+            // Lặp lại sau khoảng thời gian đã đặt
+            setTimeout(() => {
+                if (isDetecting) {
+                    requestAnimationFrame(detectFaces);
+                }
+            }, detectionInterval);
+        }
+        
+        // Hàm cập nhật thống kê
+        function updateStats(faceCount, detectionTime) {
+            faceCountElement.textContent = faceCount;
+            detectionTimeElement.textContent = `${detectionTime.toFixed(1)}ms`;
+        }
+        
+        // Hàm cập nhật FPS
+        function updateFps() {
+            frameCount++;
+            const now = Date.now();
+            const elapsed = now - lastFpsUpdate;
+            
+            if (elapsed >= 1000) { // Cập nhật FPS mỗi giây
+                fps = Math.round((frameCount * 1000) / elapsed);
+                fpsCounterElement.textContent = fps;
+                frameCount = 0;
+                lastFpsUpdate = now;
+            }
+        }
+        
+        // Hàm cập nhật kết quả chi tiết
+        function updateResults(detections) {
+            if (detections.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="no-faces">
+                        <i class="fas fa-user-slash fa-3x"></i>
+                        <p>Không phát hiện khuôn mặt nào</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let resultsHTML = '';
+            
+            detections.forEach((detection, index) => {
+                // Xác định độ chính xác
+                const score = detection.detection.score;
+                let accuracyClass = 'accuracy-low';
+                if (score >= 0.8) accuracyClass = 'accuracy-high';
+                else if (score >= 0.6) accuracyClass = 'accuracy-medium';
+                
+                // Xác định biểu cảm chính
+                const expressions = detection.expressions;
+                let dominantExpression = 'Trung tính';
+                let maxExpressionScore = 0;
+                
+                if (expressions) {
+                    for (const [expression, score] of Object.entries(expressions)) {
+                        if (score > maxExpressionScore) {
+                            maxExpressionScore = score;
+                            dominantExpression = expression;
+                        }
+                    }
+                }
+                
+                // Dịch biểu cảm sang tiếng Việt
+                const expressionTranslations = {
+                    'neutral': 'Trung tính',
+                    'happy': 'Vui vẻ',
+                    'sad': 'Buồn bã',
+                    'angry': 'Tức giận',
+                    'fearful': 'Sợ hãi',
+                    'disgusted': 'Khó chịu',
+                    'surprised': 'Ngạc nhiên'
+                };
+                
+                const translatedExpression = expressionTranslations[dominantExpression] || dominantExpression;
+                
+                // Xác định giới tính và tuổi
+                const age = detection.age ? Math.round(detection.age) : 'Không xác định';
+                const gender = detection.gender || 'Không xác định';
+                const genderText = gender === 'male' ? 'Nam' : (gender === 'female' ? 'Nữ' : 'Không xác định');
+                
+                resultsHTML += `
+                    <div class="face-card">
+                        <div class="face-id">Khuôn mặt #${index + 1}</div>
+                        <div class="face-details">
+                            <div class="face-detail">
+                                <span class="detail-label">Độ chính xác:</span>
+                                <span class="detail-value ${accuracyClass}">${(score * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Biểu cảm:</span>
+                                <span class="detail-value">${translatedExpression}</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Giới tính:</span>
+                                <span class="detail-value">${genderText}</span>
+                            </div>
+                            <div class="face-detail">
+                                <span class="detail-label">Tuổi ước tính:</span>
+                                <span class="detail-value">${age}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = resultsHTML;
+        }
+        
+        // Hàm chụp ảnh
+        function captureImage() {
+            if (!isDetecting) {
+                alert('Vui lòng bật chế độ nhận diện trước khi chụp ảnh');
+                return;
+            }
+            
+            // Tạo canvas tạm thời
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = overlay.width;
+            tempCanvas.height = overlay.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Vẽ video và overlay lên canvas
+            tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(overlay, 0, 0);
+            
+            // Tạo liên kết tải về
+            const link = document.createElement('a');
+            link.download = `face-detection-${new Date().getTime()}.png`;
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+            
+            // Thông báo
+            alert('Đã lưu ảnh thành công!');
+        }
+        
+        // Hàm khởi tạo ứng dụng
+        async function initApp() {
+            console.log('Đang khởi tạo ứng dụng nhận diện khuôn mặt...');
+            
+            // Vô hiệu hóa các nút cho đến khi sẵn sàng
+            startButton.disabled = true;
+            stopButton.disabled = true;
+            captureButton.disabled = true;
+            
+            // Thiết lập sự kiện cho các nút
+            startButton.addEventListener('click', startDetection);
+            stopButton.addEventListener('click', stopDetection);
+            captureButton.addEventListener('click', captureImage);
+            
+            // Thiết lập sự kiện cho các tùy chọn
+            showLandmarksCheckbox.addEventListener('change', (e) => {
+                detectionOptions.showLandmarks = e.target.checked;
+            });
+            
+            showBoxesCheckbox.addEventListener('change', (e) => {
+                detectionOptions.showBoxes = e.target.checked;
+            });
+            
+            showExpressionsCheckbox.addEventListener('change', (e) => {
+                detectionOptions.showExpressions = e.target.checked;
+            });
+            
+            detectionIntervalSlider.addEventListener('input', (e) => {
+                detectionInterval = parseInt(e.target.value);
+                intervalValueElement.textContent = `${detectionInterval}ms`;
+            });
+            
+            minConfidenceSlider.addEventListener('input', (e) => {
+                detectionOptions.minConfidence = parseFloat(e.target.value);
+                confidenceValueElement.textContent = detectionOptions.minConfidence;
+            });
+            
+            // Tải mô hình AI và khởi động camera
+            await loadModels();
+            await startCamera();
+            
+            console.log('Ứng dụng đã sẵn sàng!');
+        }
+        
+        // Khởi chạy ứng dụng khi trang đã tải xong
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
