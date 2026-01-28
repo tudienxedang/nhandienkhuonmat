@@ -3,719 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Recognition Pro - Hoàn Chỉnh 2024</title>
+    <title>Face Recognition Mobile</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     
     <style>
-        /* CSS HIỆN ĐẠI TỐI ƯU */
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
-        }
+        /* RESET & BASE */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: #1a1a2e; color: #fff; min-height: 100vh; padding: 15px; }
         
-        body { 
-            background: linear-gradient(135deg, #0f172a, #1e293b, #334155);
-            color: #f8fafc; 
-            min-height: 100vh; 
-            padding: 20px;
-            line-height: 1.6;
-        }
+        /* CONTAINER */
+        .container { max-width: 1200px; margin: 0 auto; }
         
-        .container { 
-            max-width: 1400px; 
-            margin: 0 auto; 
-            padding: 20px;
-        }
+        /* HEADER */
+        header { text-align: center; padding: 20px 0; margin-bottom: 20px; }
+        h1 { font-size: 24px; margin-bottom: 10px; color: #4cc9f0; }
+        .subtitle { color: #a0a0c0; font-size: 14px; margin-bottom: 15px; }
         
-        /* HEADER HIỆN ĐẠI */
-        header { 
-            text-align: center; 
-            padding: 30px 0; 
-            margin-bottom: 40px;
-            background: linear-gradient(90deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
+        /* CARDS */
+        .card { background: rgba(30, 30, 50, 0.8); border-radius: 15px; padding: 20px; margin-bottom: 15px; }
         
-        h1 { 
-            font-size: 3rem; 
-            margin-bottom: 15px; 
-            background: linear-gradient(90deg, #60a5fa, #38bdf8, #22d3ee);
-            -webkit-background-clip: text; 
-            background-clip: text; 
-            color: transparent;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        
-        .tech-badge {
-            display: inline-block;
-            background: linear-gradient(90deg, #f59e0b, #d97706);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin: 10px;
-            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-        }
-        
-        .subtitle { 
-            font-size: 1.3rem; 
-            opacity: 0.9; 
-            max-width: 800px; 
-            margin: 20px auto; 
-            color: #cbd5e1;
-        }
-        
-        /* CARD HIỆN ĐẠI */
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* DATA MANAGEMENT SECTION - MỚI THÊM */
-        .data-management-section {
-            border: 2px solid #8b5cf6;
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(51, 65, 85, 0.8));
-        }
-        
-        .data-management-title {
-            font-size: 1.8rem; 
-            margin-bottom: 25px; 
-            color: #8b5cf6; 
-            padding-bottom: 12px; 
-            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .data-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-            justify-content: center;
-        }
-        
-        .btn-data {
-            padding: 14px 28px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            color: white;
-            font-size: 1rem;
-            min-width: 160px;
-            justify-content: center;
-        }
-        
-        .btn-export { 
-            background: linear-gradient(90deg, #10b981, #059669);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-export:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-        }
-        
-        .btn-import { 
-            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
-        }
-        
-        .btn-import:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
-        }
-        
-        .btn-clear { 
-            background: linear-gradient(90deg, #ef4444, #dc2626);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
-        }
-        
-        .btn-clear:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
-        }
-        
-        /* UPLOAD SECTION */
-        .upload-section {
-            border: 2px dashed #3b82f6;
-            background: rgba(30, 41, 59, 0.5);
-        }
-        
-        .upload-btn-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            margin-top: 15px;
-        }
-        
-        .btn-upload { 
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-            color: white; 
-            border: none;
-            padding: 15px 32px; 
-            border-radius: 12px; 
+        /* BUTTONS */
+        .btn { 
+            padding: 12px 20px; 
+            border: none; 
+            border-radius: 10px; 
             font-weight: 600; 
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            gap: 8px; 
+            color: white; 
+            font-size: 14px; 
+            transition: opacity 0.3s;
+            min-width: 120px;
         }
+        .btn-primary { background: linear-gradient(90deg, #4361ee, #3a0ca3); }
+        .btn-secondary { background: rgba(255,255,255,0.1); }
+        .btn-success { background: linear-gradient(90deg, #4cc9f0, #4361ee); }
+        .btn-danger { background: linear-gradient(90deg, #f72585, #b5179e); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn:hover:not(:disabled) { opacity: 0.9; }
         
-        .btn-upload:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-        }
+        /* DATA MANAGEMENT */
+        .data-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
         
+        /* UPLOAD */
+        .upload-btn-wrapper { position: relative; display: inline-block; }
         .upload-btn-wrapper input[type=file] { 
-            font-size: 100px; 
             position: absolute; 
             left: 0; 
             top: 0; 
             opacity: 0; 
+            width: 100%; 
+            height: 100%; 
             cursor: pointer; 
         }
         
-        /* STATUS HIỆN ĐẠI */
-        .status-container { 
-            display: flex; 
-            justify-content: center; 
-            margin-bottom: 40px; 
-        }
-        
+        /* STATUS */
         .status { 
             display: flex; 
             align-items: center; 
-            background: linear-gradient(90deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.9));
-            padding: 18px 35px; 
-            border-radius: 15px; 
-            font-weight: 600; 
-            gap: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            min-width: 300px;
-            justify-content: center;
+            justify-content: center; 
+            padding: 12px; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 10px; 
+            margin: 15px 0; 
+            gap: 10px; 
         }
+        .status i { font-size: 18px; }
+        .status-loading { color: #ffd166; }
+        .status-ready { color: #06d6a0; }
+        .status-error { color: #ef476f; }
         
-        .status i { 
-            font-size: 1.4rem; 
-        }
-        
-        .status-loading { 
-            color: #fbbf24; 
-            background: linear-gradient(90deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
-        }
-        
-        .status-ready { 
-            color: #10b981; 
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
-        }
-        
-        .status-error { 
-            color: #ef4444; 
-            background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
-        }
-        
-        /* LAYOUT HIỆN ĐẠI */
-        .main-content { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr;
-            gap: 40px; 
-            margin-bottom: 40px; 
-        }
-        
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .video-section { 
-            position: relative;
-        }
-        
+        /* VIDEO SECTION */
         .video-container { 
             position: relative; 
             width: 100%; 
-            border-radius: 20px; 
+            border-radius: 10px; 
             overflow: hidden; 
             background: #000;
-            aspect-ratio: 16/9;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            aspect-ratio: 4/3;
         }
-        
-        #video { 
+        #video, #overlay { 
             width: 100%; 
             height: 100%; 
-            object-fit: cover; 
             display: block; 
+            object-fit: cover;
         }
         
-        #overlay { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            pointer-events: none; 
-        }
-        
-        .results-section { 
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .section-title { 
-            font-size: 1.8rem; 
-            margin-bottom: 25px; 
-            color: #60a5fa; 
-            padding-bottom: 12px; 
-            border-bottom: 2px solid rgba(96, 165, 250, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        /* CONTROLS HIỆN ĐẠI */
+        /* CONTROLS */
         .controls { 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 20px; 
+            gap: 10px; 
             justify-content: center; 
-            margin-top: 30px; 
+            margin: 15px 0; 
         }
         
-        button { 
-            padding: 16px 32px; 
-            border: none; 
-            border-radius: 12px; 
+        /* RESULTS */
+        .detection-results { 
+            max-height: 300px; 
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .detection-results::-webkit-scrollbar {
+            width: 4px;
+        }
+        .detection-results::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+        .detection-results::-webkit-scrollbar-thumb {
+            background: #4361ee;
+            border-radius: 2px;
+        }
+        .face-card { 
+            background: rgba(50, 50, 80, 0.6); 
+            border-radius: 10px; 
+            padding: 15px; 
+            margin-bottom: 10px; 
+        }
+        .face-id { 
             font-weight: 600; 
-            cursor: pointer; 
+            margin-bottom: 8px; 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
-            transition: all 0.3s ease; 
-            color: white;
-            font-size: 1.1rem;
-            gap: 12px;
-            min-width: 180px;
+            gap: 8px; 
         }
         
-        .btn-primary { 
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-        }
-        
-        .btn-secondary { 
-            background: rgba(255, 255, 255, 0.1); 
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-        }
-        
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .btn-success { 
-            background: linear-gradient(90deg, #10b981, #059669); 
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-success:hover:not(:disabled) {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
-        }
-        
-        button:disabled { 
-            opacity: 0.4; 
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* DETECTION RESULTS HIỆN ĐẠI */
-        .detection-results { 
-            max-height: 500px; 
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-        
-        .detection-results::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .detection-results::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-        }
-        
-        .detection-results::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #3b82f6, #2563eb);
-            border-radius: 10px;
-        }
-        
-        .face-card { 
-            background: rgba(51, 65, 85, 0.5);
-            border-radius: 16px; 
-            padding: 20px; 
-            margin-bottom: 20px; 
-            border-left: 5px solid #3b82f6;
-            transition: all 0.3s ease;
-        }
-        
-        .face-card:hover {
-            background: rgba(71, 85, 105, 0.6);
-            transform: translateX(5px);
-        }
-        
-        .face-id { 
-            font-weight: 700; 
-            color: #60a5fa; 
-            margin-bottom: 10px; 
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .face-details { 
-            display: grid; 
-            grid-template-columns: repeat(2, 1fr); 
-            gap: 15px; 
-            margin-top: 15px; 
-        }
-        
-        .face-detail { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 10px 0; 
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
-        }
-        
-        .detail-label { 
-            font-weight: 600; 
-            color: #94a3b8; 
-        }
-        
-        .detail-value { 
-            font-weight: 700; 
-            color: #f8fafc; 
-        }
-        
-        /* TECH SPECS */
-        .tech-specs {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-        
-        .spec-card {
-            background: rgba(30, 41, 59, 0.7);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .spec-icon {
-            font-size: 2rem;
-            color: #60a5fa;
-            margin-bottom: 10px;
-        }
-        
-        .spec-title {
-            font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 5px;
-        }
-        
-        .spec-value {
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-        
-        /* LOADED PEOPLE */
+        /* PEOPLE TAGS */
         .loaded-people { 
             display: flex; 
             flex-wrap: wrap; 
-            gap: 10px; 
-            margin-top: 15px; 
+            gap: 8px; 
+            margin-top: 10px; 
         }
-        
         .person-tag { 
-            background: linear-gradient(90deg, #10b981, #059669);
+            background: #06d6a0; 
             color: white; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-size: 0.9rem; 
-            font-weight: 600;
-            display: flex;
+            padding: 5px 10px; 
+            border-radius: 15px; 
+            font-size: 12px; 
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            gap: 5px;
         }
         
-        /* PERFORMANCE METER */
-        .performance-meter {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        /* PERFORMANCE INFO */
+        .performance { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 12px; 
+            margin-top: 10px; 
+            color: #888; 
         }
         
-        .fps-counter {
-            font-weight: 700;
-            color: #fbbf24;
-            font-size: 1.1rem;
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .card { padding: 15px; }
+            .btn { padding: 10px 15px; font-size: 13px; min-width: 110px; }
+            h1 { font-size: 20px; }
+            .controls { gap: 8px; }
+            .data-actions { gap: 8px; }
         }
         
-        /* FOOTER */
-        footer { 
-            text-align: center; 
-            padding: 30px 0; 
-            color: #94a3b8; 
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            margin-top: 40px;
-        }
-        
-        .version-badge {
-            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        
-        /* WARNING BANNER */
-        .warning-banner {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.2));
-            border-left: 5px solid #f59e0b;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        /* DATA STATUS */
-        .data-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #3b82f6;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* HIDDEN FILE INPUT */
-        .hidden-file-input {
-            display: none;
-        }
+        /* LOADING STATES */
+        .loading { opacity: 0.7; pointer-events: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="tech-badge">
-                <i class="fas fa-microchip"></i> Face-API.js + IndexedDB 2024
-            </div>
-            <h1><i class="fas fa-robot"></i> Hệ Thống Nhận Diện Khuôn Mặt Pro</h1>
-            <p class="subtitle">Kết hợp công nghệ AI tối ưu với hệ thống lưu trữ vĩnh viễn. Dữ liệu không bao giờ mất!</p>
-            
-            <div class="tech-specs">
-                <div class="spec-card">
-                    <div class="spec-icon"><i class="fas fa-bolt"></i></div>
-                    <div class="spec-title">30-60 FPS</div>
-                    <div class="spec-value">Real-time Performance</div>
-                </div>
-                <div class="spec-card">
-                    <div class="spec-icon"><i class="fas fa-database"></i></div>
-                    <div class="spec-title">IndexedDB</div>
-                    <div class="spec-value">Lưu trữ vĩnh viễn</div>
-                </div>
-                <div class="spec-card">
-                    <div class="spec-icon"><i class="fas fa-shield-alt"></i></div>
-                    <div class="spec-title">Privacy First</div>
-                    <div class="spec-value">100% Offline</div>
-                </div>
-                <div class="spec-card">
-                    <div class="spec-icon"><i class="fas fa-camera"></i></div>
-                    <div class="spec-title">Capture & Train</div>
-                    <div class="spec-value">Chụp ảnh trực tiếp</div>
-                </div>
-            </div>
-            
-            <div class="warning-banner">
-                <i class="fas fa-exclamation-triangle" style="color: #f59e0b; font-size: 1.5rem;"></i>
-                <div>
-                    <strong>Lưu ý:</strong> Dữ liệu được tự động lưu vào IndexedDB của trình duyệt. Không cần học lại mỗi lần chạy!
-                </div>
-            </div>
+            <h1><i class="fas fa-robot"></i> Face Recognition</h1>
+            <p class="subtitle">Nhận diện khuôn mặt trên trình duyệt</p>
         </header>
         
-        <!-- PHẦN QUẢN LÝ DỮ LIỆU - MỚI THÊM -->
-        <div class="card data-management-section">
-            <h3 class="data-management-title"><i class="fas fa-database"></i> Quản lý dữ liệu nhận diện</h3>
-            <p style="margin: 15px 0; color: #cbd5e1;">
-                <i class="fas fa-info-circle"></i> Dữ liệu khuôn mặt được lưu vĩnh viễn vào IndexedDB của trình duyệt. Có thể export/import để backup hoặc chia sẻ.
-            </p>
-            
+        <!-- DATA MANAGEMENT -->
+        <div class="card">
+            <h3><i class="fas fa-database"></i> Quản lý dữ liệu</h3>
             <div class="data-actions">
-                <button class="btn-data btn-export" id="exportData">
-                    <i class="fas fa-download"></i> Xuất dữ liệu
+                <button class="btn btn-success" id="exportData">
+                    <i class="fas fa-download"></i> Xuất
                 </button>
-                <button class="btn-data btn-import" id="importData">
-                    <i class="fas fa-upload"></i> Nhập dữ liệu
+                <button class="btn btn-primary" id="importData">
+                    <i class="fas fa-upload"></i> Nhập
                 </button>
-                <button class="btn-data btn-clear" id="clearData">
-                    <i class="fas fa-trash"></i> Xóa tất cả
+                <button class="btn btn-danger" id="clearData">
+                    <i class="fas fa-trash"></i> Xóa
                 </button>
-                <input type="file" id="importFile" accept=".json" class="hidden-file-input">
+                <input type="file" id="importFile" accept=".json" style="display:none;">
             </div>
-            
-            <div class="data-info" id="storageInfo">
+            <div id="storageInfo" style="font-size:12px; color:#aaa; margin-top:10px;">
                 <i class="fas fa-spinner fa-spin"></i> Đang kiểm tra dữ liệu...
             </div>
         </div>
         
-        <!-- PHẦN UPLOAD ẢNH -->
-        <div class="card upload-section">
-            <h3 class="section-title"><i class="fas fa-database"></i> Bước 1: Nạp dữ liệu khuôn mặt</h3>
-            <p style="margin: 15px 0; color: #cbd5e1;">
-                <i class="fas fa-info-circle"></i> Chọn thư mục chứa ảnh khuôn mặt. Cấu trúc: <strong>Tên_Người/hinh_anh.jpg</strong><br>
-                Ví dụ: Thư mục "Data" chứa thư mục con "NguyenVanA", bên trong có ảnh của A.
+        <!-- UPLOAD IMAGES -->
+        <div class="card">
+            <h3><i class="fas fa-images"></i> Thêm dữ liệu</h3>
+            <p style="font-size:12px; color:#aaa; margin:10px 0;">
+                Chọn thư mục chứa ảnh: <strong>Tên_Người/ảnh.jpg</strong>
             </p>
             <div class="upload-btn-wrapper">
-                <button class="btn-upload">
-                    <i class="fas fa-folder-plus"></i> Chọn thư mục ảnh
+                <button class="btn btn-primary" id="uploadBtn">
+                    <i class="fas fa-folder-open"></i> Chọn thư mục
                 </button>
                 <input type="file" id="folderUpload" webkitdirectory directory multiple accept="image/*">
             </div>
-            <div class="data-status" id="dataStatus" style="margin-top: 20px; color: #94a3b8;">
-                <i class="fas fa-info-circle"></i> Chưa có dữ liệu khuôn mặt. Hệ thống chỉ phát hiện khuôn mặt chưa định danh.
+            <div id="dataStatus" style="font-size:12px; margin-top:10px; color:#aaa;">
+                Chưa có dữ liệu
             </div>
             <div class="loaded-people" id="loadedPeople"></div>
         </div>
         
-        <div class="status-container">
-            <div class="status" id="status">
-                <i class="fas fa-sync-alt fa-spin"></i>
-                <span>Đang khởi tạo hệ thống AI...</span>
-            </div>
+        <!-- STATUS -->
+        <div class="status" id="status">
+            <i class="fas fa-sync-alt fa-spin"></i>
+            <span>Đang khởi tạo...</span>
         </div>
         
-        <!-- PHẦN CHÍNH: CAMERA VÀ KẾT QUẢ -->
-        <div class="main-content">
-            <div class="card video-section">
-                <h2 class="section-title"><i class="fas fa-video"></i> Camera Live</h2>
+        <!-- MAIN CONTENT -->
+        <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+            <div class="card">
+                <h3><i class="fas fa-video"></i> Camera</h3>
                 <div class="video-container">
-                    <video id="video" width="600" height="450" autoplay muted playsinline></video>
+                    <video id="video" autoplay muted playsinline></video>
                     <canvas id="overlay"></canvas>
                 </div>
                 
-                <div class="performance-meter">
-                    <div class="fps-counter">
-                        <i class="fas fa-tachometer-alt"></i> FPS: <span id="fpsCounter">0</span>
-                    </div>
-                    <div id="detectionCount" style="color: #60a5fa;">
-                        <i class="fas fa-user"></i> Đang phát hiện: <span>0</span> khuôn mặt
-                    </div>
+                <div class="performance">
+                    <span><i class="fas fa-tachometer-alt"></i> FPS: <span id="fpsCounter">0</span></span>
+                    <span><i class="fas fa-user"></i> Faces: <span id="detectionCount">0</span></span>
                 </div>
                 
                 <div class="controls">
-                    <button id="startButton" class="btn-primary" disabled>
-                        <i class="fas fa-play-circle"></i> Bắt đầu nhận diện
+                    <button id="startButton" class="btn btn-primary" disabled>
+                        <i class="fas fa-play"></i> Bắt đầu
                     </button>
-                    <button id="stopButton" class="btn-secondary" disabled>
-                        <i class="fas fa-stop-circle"></i> Dừng nhận diện
+                    <button id="stopButton" class="btn btn-secondary" disabled>
+                        <i class="fas fa-stop"></i> Dừng
                     </button>
-                    <button id="captureButton" class="btn-success">
-                        <i class="fas fa-camera"></i> Chụp ảnh & Học
+                    <button id="captureButton" class="btn btn-success" disabled>
+                        <i class="fas fa-camera"></i> Chụp
                     </button>
                 </div>
             </div>
             
-            <div class="card results-section">
-                <h2 class="section-title"><i class="fas fa-list-alt"></i> Kết quả nhận diện</h2>
+            <div class="card">
+                <h3><i class="fas fa-list"></i> Kết quả</h3>
                 <div class="detection-results" id="resultsContainer">
-                    <div style="text-align: center; padding: 40px; color: #64748b;">
-                        <i class="fas fa-user-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <p>Chưa phát hiện khuôn mặt nào.</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">Bấm "Bắt đầu nhận diện" để khởi động camera.</p>
+                    <div style="text-align:center; padding:20px; color:#666;">
+                        Chưa phát hiện khuôn mặt
                     </div>
                 </div>
             </div>
         </div>
-
-        <footer>
-            <p>
-                <i class="fas fa-code"></i> Hệ thống Face Recognition Pro - Tích hợp IndexedDB & Real-time Detection
-                <span class="version-badge">v2024.2</span>
-            </p>
-            <p style="margin-top: 10px; font-size: 0.8rem;">
-                <i class="fas fa-lock"></i> Hoạt động hoàn toàn Offline • Dữ liệu lưu vĩnh viễn • Không gửi dữ liệu đi đâu
-            </p>
+        
+        <footer style="text-align:center; padding:20px 0; color:#666; font-size:12px;">
+            <p>Face Recognition Mobile • Hoạt động offline • Dữ liệu lưu local</p>
         </footer>
     </div>
 
     <script>
         // ============================================
-        // HỆ THỐNG NHẬN DIỆN KHUÔN MẶT HOÀN CHỈNH
-        // Kết hợp giao diện đẹp + lưu trữ vĩnh viễn
+        // HỆ THỐNG NHẬN DIỆN KHUÔN MẶT - ĐÃ FIX LỖI
         // ============================================
 
         // --- BIẾN TOÀN CỤC ---
@@ -723,966 +277,671 @@
         const overlay = document.getElementById('overlay');
         const overlayCtx = overlay.getContext('2d');
         const statusElement = document.getElementById('status');
-        const resultsContainer = document.getElementById('resultsContainer');
         const dataStatus = document.getElementById('dataStatus');
         const loadedPeopleContainer = document.getElementById('loadedPeople');
-        const fpsCounter = document.getElementById('fpsCounter');
-        const detectionCount = document.getElementById('detectionCount').querySelector('span');
         const storageInfo = document.getElementById('storageInfo');
+        const fpsCounter = document.getElementById('fpsCounter');
+        const detectionCount = document.getElementById('detectionCount');
+        const uploadBtn = document.getElementById('uploadBtn');
         
-        // Biến hệ thống
         let isDetecting = false;
         let modelsLoaded = false;
         let faceMatcher = null;
-        let lastTimestamp = 0;
+        let db = null;
         let frameCount = 0;
+        let lastTimestamp = 0;
         let fps = 0;
         let detectionOptions = null;
-        let db = null; // IndexedDB instance
+        let isProcessingUpload = false;
         
-        // Cấu hình
+        // CẤU HÌNH
         const MATCH_THRESHOLD = 0.5;
-        const MIN_CONFIDENCE = 0.5;
-        const INPUT_SIZE = 320;
+        const INPUT_SIZE = 224;
+        const FPS_LIMIT = 15; // Giới hạn FPS cho mobile
+        const BATCH_SIZE = 3; // Xử lý ảnh theo batch
         
-        // Cấu hình IndexedDB
+        // INDEXEDDB - FIX VERSION ERROR
         const DB_NAME = 'FaceRecognitionDB';
-        const DB_VERSION = 3; // Tăng version để đảm bảo schema mới
-        const STORE_NAME = 'faceDescriptors';
-
-        // ============================================
-        // PHẦN 1: INDEXEDDB - LƯU TRỮ VĨNH VIỄN
-        // ============================================
-
-        // Khởi tạo IndexedDB
+        const STORE_NAME = 'faces';
+        let DB_VERSION = 1;
+        
+        // --- TIỆN ÍCH ---
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        function updateStatus(msg, type = 'loading') {
+            const icon = statusElement.querySelector('i');
+            statusElement.querySelector('span').textContent = msg;
+            statusElement.className = `status status-${type}`;
+            icon.className = type === 'loading' ? 'fas fa-sync-alt fa-spin' : 
+                            type === 'ready' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+        }
+        
+        function showAlert(msg, type = 'info') {
+            const colors = { info: '#4cc9f0', success: '#06d6a0', error: '#ef476f' };
+            updateStatus(msg, type === 'error' ? 'error' : 'ready');
+            setTimeout(() => {
+                if (modelsLoaded) updateStatus('Sẵn sàng', 'ready');
+            }, 2000);
+        }
+        
+        // --- INDEXEDDB - FIXED VERSION HANDLING ---
         function initIndexedDB() {
             return new Promise((resolve, reject) => {
-                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                // Trước tiên, kiểm tra version hiện tại
+                const checkRequest = indexedDB.open(DB_NAME);
                 
-                request.onerror = (event) => {
-                    console.error("❌ Lỗi mở IndexedDB:", event.target.error);
-                    reject(event.target.error);
+                checkRequest.onsuccess = (event) => {
+                    const tempDb = event.target.result;
+                    DB_VERSION = tempDb.version; // Lấy version hiện tại
+                    tempDb.close();
+                    
+                    // Mở với version hiện tại + 1 để tránh lỗi
+                    const openRequest = indexedDB.open(DB_NAME, DB_VERSION + 1);
+                    
+                    openRequest.onerror = (e) => {
+                        console.error("DB Open Error:", e.target.error);
+                        // Nếu lỗi, thử mở với version hiện tại
+                        const fallbackRequest = indexedDB.open(DB_NAME, DB_VERSION);
+                        fallbackRequest.onsuccess = (e) => {
+                            db = e.target.result;
+                            resolve();
+                        };
+                        fallbackRequest.onerror = reject;
+                    };
+                    
+                    openRequest.onsuccess = (event) => {
+                        db = event.target.result;
+                        resolve();
+                    };
+                    
+                    openRequest.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'label' });
+                        }
+                    };
                 };
                 
-                request.onsuccess = (event) => {
-                    db = event.target.result;
-                    console.log("✅ IndexedDB đã kết nối");
+                checkRequest.onerror = () => {
+                    // Database chưa tồn tại, tạo mới với version 1
+                    const createRequest = indexedDB.open(DB_NAME, 1);
                     
-                    // Kiểm tra dữ liệu đã lưu
-                    checkStoredData().then(resolve).catch(reject);
-                };
-                
-                request.onupgradeneeded = (event) => {
-                    console.log("🔄 Đang nâng cấp IndexedDB...");
-                    const db = event.target.result;
+                    createRequest.onerror = reject;
                     
-                    // Tạo object store nếu chưa có
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'label' });
-                        console.log("✅ Đã tạo object store:", STORE_NAME);
-                    }
+                    createRequest.onsuccess = (event) => {
+                        db = event.target.result;
+                        resolve();
+                    };
+                    
+                    createRequest.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'label' });
+                        }
+                    };
                 };
             });
         }
-
-        // Lưu dữ liệu vào IndexedDB
+        
         async function saveToIndexedDB(label, descriptors) {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject(new Error("Database chưa được khởi tạo"));
-                    return;
-                }
-                
-                // Chuyển Float32Array thành Array để lưu
-                const descriptorsArray = descriptors.map(desc => {
-                    if (desc instanceof Float32Array) {
-                        return Array.from(desc);
-                    }
-                    return desc;
-                });
+                if (!db) return reject("No DB connection");
                 
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
                 
-                const item = {
-                    label: label.toString(),
-                    descriptors: descriptorsArray,
-                    timestamp: new Date().toISOString(),
-                    count: descriptorsArray.length,
-                    lastUpdated: new Date().toISOString()
+                // Chuyển descriptors sang array
+                const descriptorsArray = descriptors.map(d => Array.from(d));
+                
+                // Tạo hoặc cập nhật item
+                const getRequest = store.get(label);
+                
+                getRequest.onsuccess = () => {
+                    const existing = getRequest.result;
+                    const item = {
+                        label: label,
+                        descriptors: existing ? [...existing.descriptors, ...descriptorsArray] : descriptorsArray,
+                        timestamp: Date.now(),
+                        count: existing ? existing.descriptors.length + descriptors.length : descriptors.length
+                    };
+                    
+                    const putRequest = store.put(item);
+                    putRequest.onsuccess = () => resolve();
+                    putRequest.onerror = (e) => reject(e.target.error);
                 };
                 
-                const request = store.put(item);
-                
-                request.onsuccess = () => {
-                    console.log(`✅ Đã lưu dữ liệu cho: ${label}`);
-                    resolve();
-                };
-                
-                request.onerror = (event) => {
-                    console.error("❌ Lỗi lưu dữ liệu:", event.target.error);
-                    reject(event.target.error);
-                };
+                getRequest.onerror = (e) => reject(e.target.error);
             });
         }
-
-        // Lấy tất cả dữ liệu từ IndexedDB
+        
         async function loadFromIndexedDB() {
             return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject(new Error("Database chưa được khởi tạo"));
-                    return;
-                }
+                if (!db) return reject("No DB connection");
                 
                 const transaction = db.transaction([STORE_NAME], 'readonly');
                 const store = transaction.objectStore(STORE_NAME);
                 const request = store.getAll();
                 
-                request.onsuccess = (event) => {
-                    const items = event.target.result;
-                    console.log(`📊 Đã tải ${items.length} người từ IndexedDB`);
-                    resolve(items);
-                };
-                
-                request.onerror = (event) => {
-                    console.error("❌ Lỗi tải dữ liệu:", event.target.error);
-                    reject(event.target.error);
-                };
+                request.onsuccess = (e) => resolve(e.target.result || []);
+                request.onerror = (e) => reject(e.target.error);
             });
         }
-
-        // Tải và khởi tạo FaceMatcher từ IndexedDB
-        async function loadFaceMatcherFromStorage() {
+        
+        async function loadFaceMatcher() {
             try {
                 const items = await loadFromIndexedDB();
+                if (!items || items.length === 0) return null;
                 
-                if (items.length === 0) {
-                    console.log("📭 Không có dữ liệu đã lưu");
-                    return null;
-                }
-                
-                console.log(`🔄 Đang tạo FaceMatcher từ ${items.length} người...`);
-                
-                // Tạo mảng LabeledFaceDescriptors từ dữ liệu đã lưu
                 const labeledDescriptors = [];
-                
                 for (const item of items) {
                     try {
-                        // Chuyển đổi Array trở lại thành Float32Array
-                        const descriptors = item.descriptors.map(arr => {
-                            if (Array.isArray(arr)) {
-                                return new Float32Array(arr);
-                            }
-                            return arr;
-                        });
-                        
-                        // Tạo LabeledFaceDescriptors đúng cách
-                        const labeledFaceDescriptor = new faceapi.LabeledFaceDescriptors(
-                            item.label.toString(),
-                            descriptors
-                        );
-                        
-                        labeledDescriptors.push(labeledFaceDescriptor);
-                        console.log(`   ✓ ${item.label}: ${descriptors.length} descriptors`);
-                        
-                    } catch (error) {
-                        console.error(`   ✗ Lỗi xử lý ${item.label}:`, error);
+                        const descriptors = item.descriptors.map(arr => new Float32Array(arr));
+                        labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(item.label, descriptors));
+                    } catch (e) {
+                        console.warn("Error processing stored data for", item.label, e);
                     }
                 }
                 
-                if (labeledDescriptors.length === 0) {
-                    console.log("⚠️ Không có descriptor hợp lệ");
-                    return null;
-                }
-                
-                // Tạo FaceMatcher
-                const matcher = new faceapi.FaceMatcher(labeledDescriptors, MATCH_THRESHOLD);
-                
-                console.log(`✅ Đã tạo FaceMatcher với ${labeledDescriptors.length} người`);
-                return matcher;
-                
+                return labeledDescriptors.length > 0 ? 
+                    new faceapi.FaceMatcher(labeledDescriptors, MATCH_THRESHOLD) : null;
             } catch (error) {
-                console.error("❌ Lỗi tạo FaceMatcher từ storage:", error);
+                console.error("Load FaceMatcher error:", error);
                 return null;
             }
         }
-
-        // Xóa dữ liệu khỏi IndexedDB
-        async function clearIndexedDB() {
-            return new Promise((resolve, reject) => {
-                if (!db) {
-                    reject(new Error("Database chưa được khởi tạo"));
-                    return;
+        
+        async function checkStoredData() {
+            try {
+                const items = await loadFromIndexedDB();
+                loadedPeopleContainer.innerHTML = '';
+                
+                if (items && items.length > 0) {
+                    const totalPeople = items.length;
+                    const totalImages = items.reduce((sum, item) => sum + (item.count || 0), 0);
+                    
+                    storageInfo.innerHTML = `<i class="fas fa-check-circle" style="color:#06d6a0;"></i> ${totalPeople} người (${totalImages} ảnh)`;
+                    dataStatus.innerHTML = `<i class="fas fa-check-circle" style="color:#06d6a0;"></i> Đã có dữ liệu`;
+                    
+                    items.forEach(item => {
+                        const tag = document.createElement('span');
+                        tag.className = 'person-tag';
+                        tag.innerHTML = `<i class="fas fa-user"></i> ${item.label} <span style="opacity:0.8;">(${item.count})</span>`;
+                        loadedPeopleContainer.appendChild(tag);
+                    });
+                    
+                    faceMatcher = await loadFaceMatcher();
+                } else {
+                    storageInfo.innerHTML = `<i class="fas fa-info-circle"></i> Chưa có dữ liệu`;
+                    dataStatus.innerHTML = `<i class="fas fa-info-circle"></i> Chưa có dữ liệu`;
                 }
+            } catch (error) {
+                console.error("Check stored data error:", error);
+                storageInfo.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#ef476f;"></i> Lỗi đọc dữ liệu`;
+            }
+        }
+        
+        async function clearAllData() {
+            return new Promise((resolve, reject) => {
+                if (!db) return reject("No DB connection");
                 
                 const transaction = db.transaction([STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(STORE_NAME);
                 const request = store.clear();
                 
-                request.onsuccess = () => {
-                    console.log("✅ Đã xóa tất cả dữ liệu");
-                    resolve();
-                };
-                
-                request.onerror = (event) => {
-                    console.error("❌ Lỗi xóa dữ liệu:", event.target.error);
-                    reject(event.target.error);
-                };
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e.target.error);
             });
         }
-
-        // Kiểm tra và hiển thị dữ liệu đã lưu
-        async function checkStoredData() {
-            try {
-                const items = await loadFromIndexedDB();
-                
-                // Xóa container cũ
-                loadedPeopleContainer.innerHTML = '';
-                
-                if (items && items.length > 0) {
-                    // Hiển thị thông tin storage
-                    const totalPeople = items.length;
-                    const totalImages = items.reduce((sum, item) => sum + (item.count || 0), 0);
-                    
-                    storageInfo.innerHTML = `
-                        <i class="fas fa-check-circle" style="color:#10b981;"></i>
-                        Đã có dữ liệu <strong>${totalPeople}</strong> người (<strong>${totalImages}</strong> ảnh) trong bộ nhớ
-                    `;
-                    
-                    dataStatus.innerHTML = `
-                        <i class="fas fa-check-circle" style="color:#10b981;"></i>
-                        Đã có dữ liệu ${totalPeople} người (${totalImages} ảnh) - Tự động lưu
-                    `;
-                    
-                    // Hiển thị danh sách người
-                    items.forEach(item => {
-                        const tag = document.createElement('span');
-                        tag.className = 'person-tag';
-                        tag.innerHTML = `
-                            <i class="fas fa-user"></i> 
-                            ${item.label} 
-                            <span style="background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:10px;">
-                                ${item.count || 0} ảnh
-                            </span>
-                        `;
-                        loadedPeopleContainer.appendChild(tag);
-                    });
-                    
-                    // Tải FaceMatcher từ storage
-                    faceMatcher = await loadFaceMatcherFromStorage();
-                    
-                } else {
-                    storageInfo.innerHTML = `
-                        <i class="fas fa-info-circle"></i>
-                        Chưa có dữ liệu nào được lưu. Hãy upload ảnh hoặc chụp từ camera.
-                    `;
-                    dataStatus.innerHTML = `
-                        <i class="fas fa-info-circle"></i>
-                        Chưa có dữ liệu khuôn mặt. Hệ thống chỉ phát hiện khuôn mặt chưa định danh.
-                    `;
-                }
-                
-            } catch (error) {
-                console.error("❌ Lỗi kiểm tra dữ liệu:", error);
-                storageInfo.innerHTML = `
-                    <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
-                    Không thể đọc dữ liệu đã lưu
-                `;
-            }
-        }
-
-        // ============================================
-        // PHẦN 2: XUẤT/NHẬP DỮ LIỆU
-        // ============================================
-
-        // Xuất dữ liệu ra file JSON
+        
+        // --- XUẤT/NHẬP DỮ LIỆU ---
         async function exportData() {
             try {
                 const items = await loadFromIndexedDB();
-                
-                if (!items || items.length === 0) {
-                    alert("Không có dữ liệu để xuất!");
+                if (items.length === 0) {
+                    showAlert("Không có dữ liệu để xuất", "info");
                     return;
                 }
                 
-                // Chuẩn bị dữ liệu xuất
                 const exportData = {
-                    version: "3.0",
-                    timestamp: new Date().toISOString(),
-                    system: "Face Recognition Pro",
-                    people: items.map(item => ({
-                        label: item.label,
-                        descriptors: item.descriptors,
-                        count: item.count,
-                        timestamp: item.timestamp,
-                        lastUpdated: item.lastUpdated
-                    }))
+                    version: "2.0",
+                    timestamp: Date.now(),
+                    people: items
                 };
                 
-                // Tạo file JSON
                 const dataStr = JSON.stringify(exportData, null, 2);
-                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
                 
-                // Tạo link download
-                const downloadLink = document.createElement('a');
-                const timestamp = new Date().toLocaleString('vi-VN').replace(/[/:\\]/g, '-');
-                downloadLink.download = `face_recognition_data_${timestamp}.json`;
-                downloadLink.href = URL.createObjectURL(dataBlob);
-                downloadLink.click();
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `face_data_${new Date().toISOString().slice(0,10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 
-                // Cleanup
-                setTimeout(() => URL.revokeObjectURL(downloadLink.href), 100);
-                
-                // Thông báo
-                const oldStatus = statusElement.querySelector('span').textContent;
-                updateStatus(`Đã xuất ${items.length} người thành công!`, 'ready');
-                setTimeout(() => updateStatus(oldStatus, 'ready'), 2000);
+                URL.revokeObjectURL(url);
+                showAlert(`Đã xuất ${items.length} người`, "success");
                 
             } catch (error) {
-                console.error("❌ Lỗi xuất dữ liệu:", error);
-                updateStatus('Lỗi xuất dữ liệu!', 'error');
-                setTimeout(() => updateStatus('Hệ thống sẵn sàng', 'ready'), 2000);
+                console.error("Export error:", error);
+                showAlert("Lỗi xuất dữ liệu", "error");
             }
         }
-
-        // Nhập dữ liệu từ file JSON
+        
         async function importData(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                
-                reader.onload = async (event) => {
+                reader.onload = async (e) => {
                     try {
-                        const importedData = JSON.parse(event.target.result);
-                        
-                        // Kiểm tra version
-                        if (!importedData.version || !importedData.people) {
-                            throw new Error("File không đúng định dạng");
+                        const data = JSON.parse(e.target.result);
+                        if (!data.people || !Array.isArray(data.people)) {
+                            throw new Error("File không hợp lệ");
                         }
                         
-                        let importedCount = 0;
-                        
-                        // Hiển thị loading
                         updateStatus('Đang import dữ liệu...', 'loading');
                         
                         // Import từng người
-                        for (const person of importedData.people) {
-                            // Đảm bảo descriptors là mảng Float32Array
-                            const descriptors = person.descriptors.map(arr => {
-                                if (Array.isArray(arr)) {
-                                    return new Float32Array(arr);
-                                }
-                                return arr;
-                            });
-                            
-                            await saveToIndexedDB(person.label, descriptors);
-                            importedCount++;
+                        for (const person of data.people) {
+                            if (person.descriptors && Array.isArray(person.descriptors)) {
+                                const descriptors = person.descriptors.map(arr => new Float32Array(arr));
+                                await saveToIndexedDB(person.label, descriptors);
+                            }
                         }
                         
-                        // Tải lại dữ liệu
                         await checkStoredData();
-                        
-                        // Thông báo
-                        const oldStatus = statusElement.querySelector('span').textContent;
-                        updateStatus(`Đã import ${importedCount} người!`, 'ready');
-                        setTimeout(() => updateStatus(oldStatus, 'ready'), 2000);
-                        
+                        showAlert(`Đã import ${data.people.length} người`, "success");
                         resolve();
-                        
                     } catch (error) {
-                        console.error("❌ Lỗi import dữ liệu:", error);
-                        updateStatus('File không hợp lệ!', 'error');
-                        setTimeout(() => updateStatus('Hệ thống sẵn sàng', 'ready'), 2000);
+                        console.error("Import error:", error);
+                        showAlert("File không hợp lệ", "error");
                         reject(error);
                     }
                 };
-                
-                reader.onerror = () => {
-                    reject(new Error("Lỗi đọc file"));
-                };
-                
                 reader.readAsText(file);
             });
         }
-
-        // ============================================
-        // PHẦN 3: TẢI MÔ HÌNH VÀ XỬ LÝ ẢNH
-        // ============================================
-
-        // Cập nhật trạng thái hệ thống
-        function updateStatus(msg, type = 'loading') {
-            const icon = statusElement.querySelector('i');
-            statusElement.querySelector('span').textContent = msg;
-            statusElement.className = `status status-${type}`;
-            
-            switch(type) {
-                case 'loading':
-                    icon.className = 'fas fa-sync-alt fa-spin';
-                    break;
-                case 'ready':
-                    icon.className = 'fas fa-check-circle';
-                    break;
-                case 'error':
-                    icon.className = 'fas fa-exclamation-circle';
-                    break;
-            }
-        }
-
-        // Tải mô hình AI
+        
+        // --- TẢI MÔ HÌNH ---
         async function loadModels() {
             try {
                 updateStatus('Đang tải mô hình AI...', 'loading');
                 
-                // Sử dụng CDN trực tiếp từ GitHub
-                const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+                // Sử dụng multiple CDN fallbacks
+                const CDN_URLS = [
+                    'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights',
+                    'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights'
+                ];
                 
-                // Tải các mô hình song song để tăng tốc
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
-                ]);
+                let loaded = false;
+                for (const MODEL_URL of CDN_URLS) {
+                    try {
+                        await Promise.all([
+                            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+                            faceapi.nets.ageGenderNet.loadFromUri(MODEL_URL)
+                        ]);
+                        loaded = true;
+                        break;
+                    } catch (e) {
+                        console.warn(`CDN ${MODEL_URL} failed, trying next...`);
+                    }
+                }
                 
-                // Cấu hình detection options cho TinyFaceDetector
+                if (!loaded) {
+                    throw new Error("Không thể tải mô hình từ bất kỳ CDN nào");
+                }
+                
                 detectionOptions = new faceapi.TinyFaceDetectorOptions({
                     inputSize: INPUT_SIZE,
-                    scoreThreshold: MIN_CONFIDENCE
+                    scoreThreshold: 0.5
                 });
                 
                 modelsLoaded = true;
                 document.getElementById('startButton').disabled = false;
                 document.getElementById('captureButton').disabled = false;
+                updateStatus('Sẵn sàng', 'ready');
                 
-                updateStatus('Hệ thống đã sẵn sàng!', 'ready');
-                console.log("✅ Tất cả mô hình đã được tải thành công");
-                
-            } catch (err) {
-                console.error("❌ Lỗi tải mô hình:", err);
-                updateStatus('Lỗi tải mô hình AI. Vui lòng tải lại trang.', 'error');
+            } catch (error) {
+                console.error("Load models error:", error);
+                updateStatus('Lỗi tải mô hình. Refresh trang thử lại.', 'error');
             }
         }
-
-        // Xử lý upload ảnh và lưu vào IndexedDB
+        
+        // --- XỬ LÝ UPLOAD ẢNH - OPTIMIZED ---
         document.getElementById('folderUpload').addEventListener('change', async (e) => {
             if (!modelsLoaded) {
-                alert("Vui lòng đợi hệ thống khởi tạo xong!");
+                showAlert("Đợi hệ thống khởi tạo xong", "info");
+                return;
+            }
+            
+            if (isProcessingUpload) {
+                showAlert("Đang xử lý ảnh khác...", "info");
                 return;
             }
             
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
-
-            updateStatus('Đang học khuôn mặt từ ảnh...', 'loading');
             
-            // Nhóm file theo tên thư mục (tên người)
+            isProcessingUpload = true;
+            uploadBtn.classList.add('loading');
+            uploadBtn.disabled = true;
+            updateStatus('Đang xử lý ảnh...', 'loading');
+            
+            // Nhóm file theo tên thư mục
             const labeledImages = {};
+            let validFiles = 0;
             
             files.forEach(file => {
-                const pathParts = file.webkitRelativePath.split('/');
-                if (pathParts.length >= 2) {
-                    const label = pathParts[pathParts.length - 2];
-                    if (!file.type.match('image.*')) return;
-                    
-                    if (!labeledImages[label]) labeledImages[label] = [];
-                    labeledImages[label].push(file);
+                if (file.type.startsWith('image/')) {
+                    const path = file.webkitRelativePath.split('/');
+                    if (path.length >= 2) {
+                        const label = path[path.length - 2];
+                        if (!labeledImages[label]) labeledImages[label] = [];
+                        labeledImages[label].push(file);
+                        validFiles++;
+                    }
                 }
             });
-
-            const labels = Object.keys(labeledImages);
-            loadedPeopleContainer.innerHTML = '';
-
-            if (labels.length === 0) {
-                updateStatus('Không tìm thấy cấu trúc thư mục hợp lệ', 'error');
+            
+            if (validFiles === 0) {
+                showAlert("Không tìm thấy ảnh hợp lệ", "error");
+                isProcessingUpload = false;
+                uploadBtn.classList.remove('loading');
+                uploadBtn.disabled = false;
+                e.target.value = '';
                 return;
             }
-
-            // Hiển thị tiến trình
-            dataStatus.innerHTML = `<div class="loader"></div> Đang xử lý ${files.length} ảnh...`;
             
-            let processedCount = 0;
-            let totalDescriptors = 0;
+            const labels = Object.keys(labeledImages);
+            let processedPeople = 0;
+            let processedImages = 0;
             
-            // Xử lý từng người
+            // Xử lý từng người theo batch
             for (const label of labels) {
+                const imageFiles = labeledImages[label];
                 const descriptors = [];
                 
-                for (const imageFile of labeledImages[label]) {
-                    try {
-                        const img = await faceapi.bufferToImage(imageFile);
-                        
-                        // Phát hiện khuôn mặt với TinyFaceDetector
-                        const detection = await faceapi
-                            .detectSingleFace(img, detectionOptions)
-                            .withFaceLandmarks()
-                            .withFaceDescriptor();
-                        
-                        if (detection) {
-                            descriptors.push(detection.descriptor);
-                            totalDescriptors++;
+                // Chia nhỏ ảnh thành các batch để tránh block UI
+                for (let i = 0; i < imageFiles.length; i += BATCH_SIZE) {
+                    const batch = imageFiles.slice(i, i + BATCH_SIZE);
+                    
+                    // Sử dụng Promise.all cho mỗi batch
+                    const batchPromises = batch.map(async (file) => {
+                        try {
+                            const img = await faceapi.bufferToImage(file);
+                            const detection = await faceapi.detectSingleFace(img, detectionOptions)
+                                .withFaceLandmarks()
+                                .withFaceDescriptor();
+                            
+                            if (detection) {
+                                return detection.descriptor;
+                            }
+                        } catch (err) {
+                            console.warn(`Lỗi xử lý ảnh ${file.name}:`, err);
                         }
-                    } catch (err) {
-                        console.log(`Lỗi đọc ảnh của ${label}:`, err);
-                    }
+                        return null;
+                    });
+                    
+                    const batchResults = await Promise.all(batchPromises);
+                    const validDescriptors = batchResults.filter(d => d !== null);
+                    descriptors.push(...validDescriptors);
+                    processedImages += validDescriptors.length;
+                    
+                    // Cập nhật tiến trình
+                    updateStatus(`Đang xử lý: ${label} (${processedImages}/${validFiles} ảnh)`, 'loading');
+                    
+                    // Giải phóng event loop
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
                 
                 if (descriptors.length > 0) {
-                    // Lưu vào IndexedDB
                     await saveToIndexedDB(label, descriptors);
-                    processedCount++;
+                    processedPeople++;
                     
-                    // Thêm vào giao diện
+                    // Thêm tag
                     const tag = document.createElement('span');
                     tag.className = 'person-tag';
-                    tag.innerHTML = `<i class="fas fa-user"></i> ${label} <span style="background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:10px;">${descriptors.length}</span>`;
+                    tag.innerHTML = `<i class="fas fa-user"></i> ${label} <span style="opacity:0.8;">(${descriptors.length})</span>`;
                     loadedPeopleContainer.appendChild(tag);
                 }
             }
-
-            // Tải lại FaceMatcher từ storage
-            faceMatcher = await loadFaceMatcherFromStorage();
             
-            // Cập nhật trạng thái
-            if (processedCount > 0) {
-                dataStatus.innerHTML = `
-                    <i class="fas fa-check-circle" style="color:#10b981;"></i>
-                    Đã học và lưu ${processedCount} người (${totalDescriptors} descriptors)
-                `;
-                updateStatus('Đã học xong dữ liệu! Sẵn sàng nhận diện', 'ready');
-            } else {
-                dataStatus.innerHTML = `
-                    <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
-                    Không tìm thấy khuôn mặt nào trong ảnh đã tải
-                `;
-                updateStatus('Không có dữ liệu khuôn mặt', 'error');
-            }
+            // Cập nhật face matcher
+            faceMatcher = await loadFaceMatcher();
+            await checkStoredData();
             
-            // Reset input
+            isProcessingUpload = false;
+            uploadBtn.classList.remove('loading');
+            uploadBtn.disabled = false;
             e.target.value = '';
+            
+            if (processedPeople > 0) {
+                showAlert(`Đã xử lý ${processedPeople} người (${processedImages} ảnh)`, "success");
+            } else {
+                showAlert("Không tìm thấy khuôn mặt hợp lệ", "error");
+            }
         });
-
-        // ============================================
-        // PHẦN 4: CAMERA, CHỤP ẢNH VÀ NHẬN DIỆN
-        // ============================================
-
-        // Khởi động camera
+        
+        // --- CAMERA & DETECTION ---
         async function startCamera() {
             try {
-                // Kiểm tra quyền truy cập camera
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Trình duyệt không hỗ trợ truy cập camera');
-                }
-                
-                // Yêu cầu quyền truy cập camera
                 const constraints = {
-                    video: {
-                        width: { ideal: 640 },
+                    video: { 
+                        width: { ideal: 640 }, 
                         height: { ideal: 480 },
                         facingMode: 'user',
-                        frameRate: { ideal: 30 }
+                        frameRate: { ideal: FPS_LIMIT }
                     }
                 };
                 
                 const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 video.srcObject = stream;
                 
-                // Đợi video sẵn sàng
-                return new Promise((resolve, reject) => {
+                return new Promise(resolve => {
                     video.onloadedmetadata = () => {
                         overlay.width = video.videoWidth;
                         overlay.height = video.videoHeight;
                         resolve();
                     };
-                    
-                    video.onerror = () => {
-                        reject(new Error('Lỗi khi tải video stream'));
-                    };
-                    
-                    // Timeout sau 5 giây
-                    setTimeout(() => {
-                        if (!video.videoWidth) {
-                            reject(new Error('Timeout khi khởi động camera'));
-                        }
-                    }, 5000);
                 });
-            } catch (err) {
-                console.error("❌ Lỗi camera:", err);
-                
-                // Hiển thị thông báo lỗi thân thiện
-                let errorMsg = 'Không thể truy cập camera. ';
-                if (err.name === 'NotAllowedError') {
-                    errorMsg += 'Vui lòng cho phép truy cập camera.';
-                } else if (err.name === 'NotFoundError') {
-                    errorMsg += 'Không tìm thấy camera.';
-                } else {
-                    errorMsg += err.message;
-                }
-                
-                updateStatus(errorMsg, 'error');
-                throw err;
+            } catch (error) {
+                console.error("Camera error:", error);
+                showAlert('Lỗi camera: ' + (error.message || 'Không thể truy cập'), "error");
+                throw error;
             }
         }
-
-        // Tính toán FPS
-        function calculateFPS(timestamp) {
-            frameCount++;
-            
-            if (timestamp >= lastTimestamp + 1000) {
-                fps = Math.round((frameCount * 1000) / (timestamp - lastTimestamp));
-                frameCount = 0;
-                lastTimestamp = timestamp;
-                fpsCounter.textContent = fps;
-            }
-        }
-
-        // Nhận diện khuôn mặt
+        
         async function detectFaces() {
             if (!isDetecting || !modelsLoaded) return;
-
+            
             const startTime = performance.now();
             
-            // Đảm bảo kích thước overlay khớp với video
+            // Kiểm tra kích thước
             if (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight) {
                 overlay.width = video.videoWidth;
                 overlay.height = video.videoHeight;
             }
             
-            // Phát hiện tất cả khuôn mặt trong frame
-            const detections = await faceapi
-                .detectAllFaces(video, detectionOptions)
-                .withFaceLandmarks()
-                .withFaceDescriptors()
-                .withFaceExpressions()
-                .withAgeAndGender();
-            
-            // Resize detections để khớp với overlay
-            const resizedDetections = faceapi.resizeResults(detections, {
-                width: video.videoWidth,
-                height: video.videoHeight
-            });
-            
-            // Xóa canvas cũ
+            // Xóa canvas
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
             
-            // Cập nhật số lượng khuôn mặt
-            detectionCount.textContent = resizedDetections.length;
-            
-            if (resizedDetections.length > 0) {
-                const resultsToDisplay = [];
+            try {
+                // Phát hiện khuôn mặt
+                const detections = await faceapi.detectAllFaces(video, detectionOptions)
+                    .withFaceLandmarks()
+                    .withFaceDescriptors()
+                    .withAgeAndGender();
                 
-                // Vẽ từng khuôn mặt
-                resizedDetections.forEach((detection, index) => {
-                    const box = detection.detection.box;
-                    const landmarks = detection.landmarks;
-                    const descriptor = detection.descriptor;
-                    const expressions = detection.expressions;
-                    const age = detection.age;
-                    const gender = detection.gender;
+                const resizedDetections = faceapi.resizeResults(detections, {
+                    width: video.videoWidth,
+                    height: video.videoHeight
+                });
+                
+                detectionCount.textContent = resizedDetections.length;
+                
+                const results = [];
+                resizedDetections.forEach((det, i) => {
+                    const box = det.detection.box;
+                    const descriptor = det.descriptor;
                     
-                    // Xác định danh tính
                     let label = "Unknown";
-                    let distance = 1;
-                    
                     if (faceMatcher && descriptor) {
-                        const bestMatch = faceMatcher.findBestMatch(descriptor);
-                        label = bestMatch.label;
-                        distance = bestMatch.distance;
+                        try {
+                            const match = faceMatcher.findBestMatch(descriptor);
+                            label = match.label;
+                        } catch (e) {
+                            console.warn("Face matching error:", e);
+                        }
                     }
                     
-                    // Xác định màu sắc dựa trên độ tin cậy
-                    const isKnown = label !== "unknown" && label !== "Unknown" && distance < 0.5;
-                    const boxColor = isKnown ? '#10b981' : '#ef4444';
-                    const labelColor = isKnown ? '#10b981' : '#f59e0b';
+                    const isKnown = label !== "unknown" && label !== "Unknown";
                     
                     // Vẽ bounding box
-                    overlayCtx.strokeStyle = boxColor;
-                    overlayCtx.lineWidth = 3;
+                    overlayCtx.strokeStyle = isKnown ? '#06d6a0' : '#ef476f';
+                    overlayCtx.lineWidth = 2;
                     overlayCtx.strokeRect(box.x, box.y, box.width, box.height);
                     
-                    // Vẽ landmarks (68 điểm)
-                    overlayCtx.fillStyle = '#3b82f6';
-                    landmarks.positions.forEach(point => {
-                        overlayCtx.beginPath();
-                        overlayCtx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
-                        overlayCtx.fill();
-                    });
+                    // Vẽ label
+                    overlayCtx.fillStyle = 'rgba(0,0,0,0.7)';
+                    overlayCtx.fillRect(box.x, box.y - 25, 180, 22);
+                    overlayCtx.fillStyle = isKnown ? '#06d6a0' : '#ffd166';
+                    overlayCtx.font = 'bold 12px Arial';
+                    overlayCtx.fillText(label, box.x + 5, box.y - 8);
                     
-                    // Vẽ nhãn với background
-                    const labelText = isKnown ? 
-                        `${label} (${Math.round((1 - distance) * 100)}%)` : 
-                        `Người lạ`;
-                    
-                    // Background cho nhãn
-                    overlayCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                    overlayCtx.fillRect(box.x, box.y - 30, 200, 25);
-                    
-                    // Text nhãn
-                    overlayCtx.fillStyle = labelColor;
-                    overlayCtx.font = 'bold 14px Arial';
-                    overlayCtx.fillText(labelText, box.x + 5, box.y - 10);
-                    
-                    // Thêm biểu cảm nếu có
-                    if (expressions) {
-                        const dominantExpression = Object.entries(expressions)
-                            .reduce((max, [emotion, value]) => value > max[1] ? [emotion, value] : max, ['neutral', 0]);
-                        
-                        overlayCtx.fillStyle = '#94a3b8';
-                        overlayCtx.font = '12px Arial';
-                        overlayCtx.fillText(
-                            `${dominantExpression[0]}: ${Math.round(dominantExpression[1] * 100)}%`,
-                            box.x + 5,
-                            box.y + box.height + 15
-                        );
-                    }
-                    
-                    // Thêm thông tin vào kết quả
-                    resultsToDisplay.push({
-                        id: index + 1,
+                    results.push({
+                        id: i + 1,
                         label: label,
-                        isKnown: isKnown,
-                        confidence: Math.round((1 - distance) * 100),
-                        age: Math.round(age),
-                        gender: gender,
-                        box: box,
-                        expressions: expressions
+                        age: Math.round(det.age),
+                        gender: det.gender
                     });
                 });
                 
-                updateResultsUI(resultsToDisplay);
-            } else {
-                updateResultsUI([]);
+                updateResultsUI(results);
+                
+            } catch (error) {
+                console.error("Detection error:", error);
             }
             
             // Tính FPS
-            calculateFPS(startTime);
-            
-            // Lặp lại
-            if (isDetecting) {
-                requestAnimationFrame(detectFaces);
+            frameCount++;
+            if (startTime >= lastTimestamp + 1000) {
+                fps = Math.round((frameCount * 1000) / (startTime - lastTimestamp));
+                frameCount = 0;
+                lastTimestamp = startTime;
+                fpsCounter.textContent = fps;
             }
+            
+            // Giới hạn FPS để tiết kiệm pin
+            const delay = Math.max(0, 1000/FPS_LIMIT - (performance.now() - startTime));
+            setTimeout(() => {
+                if (isDetecting) requestAnimationFrame(detectFaces);
+            }, delay);
         }
-
-        // Chụp ảnh từ camera và học khuôn mặt - TÍCH HỢP MỚI
-        document.getElementById('captureButton').addEventListener('click', async () => {
-            if (!video.srcObject || !modelsLoaded) {
-                alert("Vui lòng bật camera trước khi chụp ảnh!");
-                return;
-            }
-            
-            // Hiển thị prompt để nhập tên
-            const personName = prompt("Nhập tên người trong ảnh:", "NewPerson");
-            if (!personName || personName.trim() === "") {
-                alert("Vui lòng nhập tên hợp lệ!");
-                return;
-            }
-            
-            updateStatus('Đang xử lý ảnh...', 'loading');
-            
-            // Tạo canvas để chụp ảnh
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            // Vẽ video frame vào canvas
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            try {
-                // Phát hiện khuôn mặt trong ảnh vừa chụp
-                const detection = await faceapi
-                    .detectSingleFace(canvas, detectionOptions)
-                    .withFaceLandmarks()
-                    .withFaceDescriptor();
-                
-                if (detection) {
-                    // Lấy descriptor từ khuôn mặt phát hiện được
-                    const descriptor = detection.descriptor;
-                    
-                    // Tải dữ liệu hiện tại từ IndexedDB
-                    const items = await loadFromIndexedDB();
-                    let existingPerson = items.find(item => item.label === personName);
-                    
-                    if (existingPerson) {
-                        // Người đã tồn tại, thêm descriptor mới
-                        const existingDescriptors = existingPerson.descriptors.map(arr => new Float32Array(arr));
-                        existingDescriptors.push(descriptor);
-                        
-                        // Cập nhật vào IndexedDB
-                        await saveToIndexedDB(personName, existingDescriptors);
-                        
-                        // Cập nhật giao diện
-                        const existingTag = Array.from(loadedPeopleContainer.querySelectorAll('.person-tag'))
-                            .find(tag => tag.textContent.includes(personName));
-                        if (existingTag) {
-                            const countMatch = existingTag.textContent.match(/\((\d+)/);
-                            const newCount = countMatch ? parseInt(countMatch[1]) + 1 : 1;
-                            existingTag.innerHTML = `
-                                <i class="fas fa-user"></i> ${personName} 
-                                <span style="background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:10px;">
-                                    ${newCount} ảnh
-                                </span>
-                            `;
-                        }
-                        
-                        updateStatus(`Đã thêm ảnh mới cho ${personName}`, 'ready');
-                    } else {
-                        // Người mới, tạo mới
-                        await saveToIndexedDB(personName, [descriptor]);
-                        
-                        // Thêm vào giao diện
-                        const tag = document.createElement('span');
-                        tag.className = 'person-tag';
-                        tag.innerHTML = `
-                            <i class="fas fa-user"></i> ${personName} 
-                            <span style="background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:10px;">
-                                1 ảnh
-                            </span>
-                        `;
-                        loadedPeopleContainer.appendChild(tag);
-                        
-                        updateStatus(`Đã học thành công ${personName}`, 'ready');
-                    }
-                    
-                    // Tải lại FaceMatcher
-                    faceMatcher = await loadFaceMatcherFromStorage();
-                    
-                    // Cập nhật storage info
-                    await checkStoredData();
-                    
-                } else {
-                    updateStatus('Không tìm thấy khuôn mặt trong ảnh!', 'error');
-                }
-                
-            } catch (error) {
-                console.error("Lỗi xử lý ảnh:", error);
-                updateStatus('Lỗi xử lý ảnh!', 'error');
-            }
-            
-            setTimeout(() => updateStatus('Đang nhận diện...', 'loading'), 2000);
-        });
-
-        // Cập nhật giao diện kết quả
+        
         function updateResultsUI(results) {
+            const container = document.getElementById('resultsContainer');
+            
             if (results.length === 0) {
-                resultsContainer.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #64748b;">
-                        <i class="fas fa-user-circle" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <p>Không có khuôn mặt nào được phát hiện.</p>
-                    </div>
-                `;
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#666;">Chưa phát hiện</div>';
                 return;
             }
             
             let html = '';
-            results.forEach((result) => {
-                const confidenceColor = result.confidence > 80 ? '#10b981' : 
-                                      result.confidence > 60 ? '#f59e0b' : '#ef4444';
-                
-                // Xác định biểu cảm chính
-                let dominantExpression = 'neutral';
-                let expressionConfidence = 0;
-                if (result.expressions) {
-                    const entries = Object.entries(result.expressions);
-                    const max = entries.reduce((max, [emotion, value]) => 
-                        value > max[1] ? [emotion, value] : max, ['neutral', 0]);
-                    dominantExpression = max[0];
-                    expressionConfidence = Math.round(max[1] * 100);
-                }
-                
+            results.forEach(res => {
+                const isKnown = res.label !== "unknown" && res.label !== "Unknown";
                 html += `
                 <div class="face-card">
-                    <div class="face-id" style="${result.isKnown ? 'color: #10b981;' : 'color: #ef4444;'}">
-                        <i class="fas ${result.isKnown ? 'fa-check-circle' : 'fa-question-circle'}"></i>
-                        ${result.label}
-                        <span style="color: ${confidenceColor}; font-size: 0.9em; margin-left: 10px;">
-                            ${result.confidence}%
-                        </span>
+                    <div class="face-id" style="color:${isKnown ? '#06d6a0' : '#ffd166'}">
+                        <i class="fas ${isKnown ? 'fa-check-circle' : 'fa-question-circle'}"></i>
+                        ${res.label}
                     </div>
-                    <div class="face-details">
-                        <div class="face-detail">
-                            <span class="detail-label">Tuổi/Giới tính:</span>
-                            <span class="detail-value">${result.age} tuổi, ${result.gender}</span>
-                        </div>
-                        <div class="face-detail">
-                            <span class="detail-label">Biểu cảm:</span>
-                            <span class="detail-value">${dominantExpression} (${expressionConfidence}%)</span>
-                        </div>
-                        <div class="face-detail">
-                            <span class="detail-label">Vị trí:</span>
-                            <span class="detail-value">${Math.round(result.box.x)}x${Math.round(result.box.y)}</span>
-                        </div>
-                        <div class="face-detail">
-                            <span class="detail-label">Trạng thái:</span>
-                            <span class="detail-value" style="color: ${result.isKnown ? '#10b981' : '#ef4444'}">
-                                ${result.isKnown ? 'Đã biết' : 'Chưa biết'}
-                            </span>
-                        </div>
+                    <div style="font-size:12px; color:#aaa;">
+                        ${res.age} tuổi • ${res.gender === 'male' ? 'Nam' : 'Nữ'}
                     </div>
                 </div>
                 `;
             });
-            resultsContainer.innerHTML = html;
+            container.innerHTML = html;
         }
-
-        // ============================================
-        // PHẦN 5: SỰ KIỆN VÀ KHỞI ĐỘNG
-        // ============================================
-
-        // Sự kiện nút bắt đầu/dừng
-        document.getElementById('startButton').addEventListener('click', async () => {
-            if (!modelsLoaded) {
-                alert("Hệ thống AI chưa sẵn sàng! Vui lòng đợi.");
+        
+        // --- CHỤP ẢNH ---
+        document.getElementById('captureButton').addEventListener('click', async () => {
+            if (!video.srcObject || !modelsLoaded) {
+                showAlert("Bật camera trước", "info");
                 return;
             }
+            
+            const name = prompt("Nhập tên người:", "");
+            if (!name || name.trim() === "") return;
+            
+            updateStatus('Đang xử lý...', 'loading');
+            captureButton.disabled = true;
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                const detection = await faceapi.detectSingleFace(canvas, detectionOptions)
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+                
+                if (detection) {
+                    await saveToIndexedDB(name, [detection.descriptor]);
+                    faceMatcher = await loadFaceMatcher();
+                    await checkStoredData();
+                    showAlert(`Đã học ${name} thành công`, "success");
+                } else {
+                    showAlert("Không tìm thấy khuôn mặt", "error");
+                }
+            } catch (error) {
+                console.error("Capture error:", error);
+                showAlert("Lỗi xử lý ảnh", "error");
+            } finally {
+                captureButton.disabled = false;
+            }
+        });
+        
+        // --- SỰ KIỆN ---
+        document.getElementById('startButton').addEventListener('click', async () => {
+            if (!modelsLoaded) return;
             
             try {
                 await startCamera();
                 isDetecting = true;
-                
-                // Cập nhật giao diện
-                document.getElementById('startButton').disabled = true;
-                document.getElementById('stopButton').disabled = false;
-                document.getElementById('captureButton').disabled = false;
-                
-                updateStatus('Đang nhận diện khuôn mặt...', 'loading');
-                
-                // Bắt đầu detection loop
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                captureButton.disabled = false;
+                updateStatus('Đang nhận diện...', 'loading');
                 detectFaces();
-                
-            } catch (err) {
-                console.error("Lỗi khi bắt đầu nhận diện:", err);
-                updateStatus('Không thể khởi động camera', 'error');
+            } catch (error) {
                 isDetecting = false;
-                document.getElementById('startButton').disabled = false;
-                document.getElementById('stopButton').disabled = true;
+                startButton.disabled = false;
+                stopButton.disabled = true;
             }
         });
-
+        
         document.getElementById('stopButton').addEventListener('click', () => {
             isDetecting = false;
-            
-            // Dừng camera stream
             if (video.srcObject) {
-                const tracks = video.srcObject.getTracks();
-                tracks.forEach(track => track.stop());
+                video.srcObject.getTracks().forEach(track => track.stop());
                 video.srcObject = null;
             }
-            
-            // Xóa canvas overlay
             overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
-            
-            // Cập nhật giao diện
-            document.getElementById('startButton').disabled = false;
-            document.getElementById('stopButton').disabled = true;
-            document.getElementById('captureButton').disabled = true;
-            
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            captureButton.disabled = true;
             detectionCount.textContent = '0';
             fpsCounter.textContent = '0';
-            
-            updateStatus('Đã dừng nhận diện', 'ready');
+            updateStatus('Đã dừng', 'ready');
         });
-
-        // Sự kiện quản lý dữ liệu
+        
         document.getElementById('exportData').addEventListener('click', exportData);
         
         document.getElementById('importData').addEventListener('click', () => {
@@ -1702,51 +961,61 @@
         });
         
         document.getElementById('clearData').addEventListener('click', async () => {
-            if (confirm("⚠️ Bạn có chắc muốn xóa TẤT CẢ dữ liệu đã học?\n\nHành động này không thể hoàn tác!\nToàn bộ dữ liệu sẽ bị xóa vĩnh viễn.")) {
-                try {
-                    updateStatus('Đang xóa dữ liệu...', 'loading');
-                    await clearIndexedDB();
-                    loadedPeopleContainer.innerHTML = '';
-                    faceMatcher = null;
-                    await checkStoredData();
-                    
-                    const oldStatus = statusElement.querySelector('span').textContent;
-                    updateStatus('Đã xóa tất cả dữ liệu!', 'ready');
-                    setTimeout(() => updateStatus(oldStatus, 'ready'), 2000);
-                    
-                } catch (error) {
-                    updateStatus('Lỗi khi xóa dữ liệu!', 'error');
-                    setTimeout(() => updateStatus('Hệ thống sẵn sàng', 'ready'), 2000);
-                }
+            if (!confirm("XÓA TẤT CẢ dữ liệu? Hành động này không thể hoàn tác!")) return;
+            
+            try {
+                updateStatus('Đang xóa dữ liệu...', 'loading');
+                await clearAllData();
+                loadedPeopleContainer.innerHTML = '';
+                faceMatcher = null;
+                await checkStoredData();
+                showAlert("Đã xóa toàn bộ dữ liệu", "success");
+            } catch (error) {
+                console.error("Clear data error:", error);
+                showAlert("Lỗi xóa dữ liệu", "error");
             }
         });
-
-        // Khởi động hệ thống
-        async function initializeSystem() {
+        
+        // --- KHỞI ĐỘNG ---
+        async function initialize() {
             try {
-                console.log("🚀 Đang khởi động hệ thống Face Recognition Pro...");
-                
-                // 1. Khởi tạo IndexedDB
                 await initIndexedDB();
-                
-                // 2. Tải mô hình AI
+                await checkStoredData();
                 await loadModels();
                 
-                console.log("✅ Hệ thống đã sẵn sàng!");
+                // Xử lý orientation change
+                window.addEventListener('orientationchange', () => {
+                    if (isDetecting && video.videoWidth) {
+                        overlay.width = video.videoWidth;
+                        overlay.height = video.videoHeight;
+                    }
+                });
+                
+                // Xử lý page visibility
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && isDetecting) {
+                        isDetecting = false;
+                        if (video.srcObject) {
+                            video.srcObject.getTracks().forEach(track => track.stop());
+                        }
+                        startButton.disabled = false;
+                        stopButton.disabled = true;
+                        captureButton.disabled = true;
+                    }
+                });
                 
             } catch (error) {
-                console.error("❌ Lỗi khởi tạo:", error);
-                updateStatus('Có lỗi xảy ra khi khởi động hệ thống!', 'error');
+                console.error("Init error:", error);
+                updateStatus('Lỗi khởi tạo hệ thống', 'error');
             }
         }
-
-        // Bắt đầu khi trang load
-        window.addEventListener('load', initializeSystem);
         
-        // Xử lý lỗi toàn cục
-        window.addEventListener('error', (event) => {
-            console.error('Lỗi toàn cục:', event.error);
-        });
+        // Chạy khi trang load xong
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
     </script>
 </body>
 </html>
