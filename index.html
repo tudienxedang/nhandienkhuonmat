@@ -2,516 +2,965 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Data Pro - Enterprise</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>AI FaceID - Cloud Sync</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
-        :root {
-            --primary: #0A84FF;
-            --success: #30D158;
-            --warning: #FF9F0A;
-            --danger: #FF453A;
-            --bg: #000;
-            --surface: #1C1C1E;
-            --input-bg: #2C2C2E;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: var(--bg); color: #fff; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-        /* --- 1. REGISTRATION MODAL --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 5000;
-            display: flex; align-items: center; justify-content: center;
+        :root { 
+            --bg: #0f172a; 
+            --surface: #1e293b; 
+            --primary: #3b82f6; 
+            --success: #10b981; 
+            --danger: #ef4444; 
+            --warning: #f59e0b; 
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
         }
         
-        .reg-form {
-            background: var(--surface); width: 90%; max-width: 450px; padding: 30px; border-radius: 20px;
-            border: 1px solid #333; box-shadow: 0 20px 50px rgba(0,0,0,0.5); animation: slideUp 0.4s ease;
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; 
         }
-
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .form-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; text-align: center; color: var(--primary); }
         
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; font-size: 13px; color: #888; margin-bottom: 5px; font-weight: 600; }
-        .form-input, .form-select {
-            width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid #444;
-            color: #fff; border-radius: 10px; font-size: 16px; outline: none; transition: 0.2s;
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow-x: hidden; 
         }
-        .form-input:focus, .form-select:focus { border-color: var(--primary); background: #333; }
-        .form-input[readonly] { opacity: 0.6; cursor: not-allowed; font-family: monospace; letter-spacing: 1px; }
-
-        .row { display: flex; gap: 15px; }
-        .col { flex: 1; }
-
-        .btn-start {
-            width: 100%; padding: 15px; background: var(--primary); color: white; border: none;
-            border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;
-            transition: 0.2s;
+        
+        /* HEADER */
+        .app-header { 
+            padding: 14px 16px; 
+            background: var(--surface); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #334155; 
+            flex-shrink: 0; 
+            min-height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .btn-start:hover { background: #0070e0; transform: scale(1.02); }
-
-        /* --- 2. MAIN APP UI --- */
-        header {
-            height: 60px; background: rgba(28,28,30,0.9); display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; border-bottom: 1px solid #333; z-index: 100;
+        
+        .brand { 
+            font-weight: 800; 
+            color: var(--primary); 
+            font-size: clamp(18px, 5vw, 20px);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .user-info-pill { font-size: 13px; background: #333; padding: 5px 10px; border-radius: 15px; color: #ccc; }
-
-        .viewport { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; background: #000; }
-        video { position: absolute; min-width: 100%; min-height: 100%; object-fit: cover; transform: scaleX(-1); }
-
-        /* Face Guide */
-        .guide-box {
-            position: absolute; width: 280px; height: 380px; border-radius: 50% / 40%;
-            border: 3px solid rgba(255,255,255,0.2); box-shadow: 0 0 0 9999px rgba(0,0,0,0.85);
-            transition: 0.3s; display: flex; justify-content: center;
+        
+        .status-pill { 
+            font-size: clamp(11px, 3vw, 13px); 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            background: #334155; 
+            color: var(--text-secondary); 
+            font-weight: 600; 
+            transition: all 0.3s ease; 
+            display: flex; 
+            align-items: center; 
+            gap: 6px; 
+            white-space: nowrap;
+            min-width: max-content;
         }
-        .guide-box.active { border-color: var(--success); box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); }
-        .guide-box.error { border-color: var(--warning); }
-
-        .msg-box { position: absolute; top: -70px; text-align: center; width: 100%; text-shadow: 0 2px 5px #000; }
-        .main-msg { font-size: 22px; font-weight: 700; display: block; margin-bottom: 5px; }
-        .sub-msg { font-size: 14px; color: #ccc; }
-
-        /* Controls */
-        .controls {
-            position: absolute; bottom: 0; width: 100%; padding: 30px; background: linear-gradient(transparent, #000);
-            display: flex; justify-content: center; gap: 40px; align-items: center;
+        
+        .status-pill.scanning { 
+            background: var(--warning); 
+            color: #000; 
+            animation: pulse 1.5s infinite; 
         }
-        .shutter {
-            width: 75px; height: 75px; border-radius: 50%; border: 4px solid #fff; background: transparent;
-            position: relative; cursor: pointer; transition: 0.2s;
+        
+        .status-pill.locked { 
+            background: var(--success); 
+            color: white; 
         }
-        .shutter::after { content: ''; position: absolute; inset: 5px; background: #fff; border-radius: 50%; transition: 0.2s; }
-        .shutter:active::after { background: var(--success); transform: scale(0.9); }
-        .shutter:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        .manual-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 10px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; }
-        .manual-btn.active { background: var(--danger); }
-
-        /* Debug Bars */
-        .debug-panel { position: absolute; bottom: 120px; display: flex; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 8px; }
-        .bar { width: 50px; height: 4px; background: #555; position: relative; }
-        .fill { width: 8px; height: 8px; background: var(--primary); position: absolute; top: -2px; border-radius: 50%; transition: 0.1s; }
-
-        /* Flash */
-        .flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 9999; }
-        .flash.fire { animation: flash 0.2s ease-out; }
-        @keyframes flash { 0% { opacity: 0.8; } 100% { opacity: 0; } }
-
-        /* --- LOADING OVERLAY CHO UPLOAD --- */
-        .loader-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 6000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
+        
+        .status-pill.syncing { 
+            background: var(--primary); 
+            color: white; 
         }
-        .spinner {
-            width: 50px; height: 50px; border: 5px solid #333; border-top-color: var(--primary);
-            border-radius: 50%; animation: spin 1s infinite linear;
+        
+        @keyframes pulse { 
+            0% { opacity: 0.7; } 
+            50% { opacity: 1; } 
+            100% { opacity: 0.7; } 
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
+        
+        /* MAIN CAMERA AREA - FIXED CANVAS */
+        .camera-container { 
+            flex: 1; 
+            position: relative; 
+            background: #000; 
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 300px;
+        }
+        
+        .video-wrapper { 
+            position: relative; 
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        video { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror effect for video only */
+            display: block;
+            background: #000;
+        }
+        
+        canvas { 
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            /* Canvas không bị mirror - chỉ video bị mirror */
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        /* PLACEHOLDER */
+        .camera-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            z-index: 1;
+        }
+        
+        /* SCAN RADAR */
+        .scan-radar { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: min(220px, 65vw); 
+            height: min(220px, 65vw); 
+            border: 2px solid rgba(59, 130, 246, 0.3); 
+            border-radius: 50%; 
+            display: none; 
+            z-index: 1;
+        }
+        
+        .scan-radar::after { 
+            content: ''; 
+            position: absolute; 
+            inset: 0; 
+            border-radius: 50%; 
+            border-top: 2px solid var(--primary); 
+            animation: radar-spin 2s linear infinite; 
+        }
+        
+        @keyframes radar-spin { 
+            to { transform: rotate(360deg); } 
+        }
+        
+        /* LIVENESS BADGE */
+        .liveness-badge { 
+            position: absolute; 
+            top: 15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(0,0,0,0.85); 
+            color: white; 
+            padding: 10px 20px; 
+            border-radius: 30px; 
+            font-size: clamp(13px, 3.5vw, 14px); 
+            font-weight: 600; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            opacity: 0; 
+            transition: all 0.3s ease; 
+            pointer-events: none;
+            z-index: 10;
+            white-space: nowrap;
+            max-width: 90%;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .liveness-badge.show { 
+            opacity: 1; 
+            top: 25px; 
+        }
+        
+        /* INFO PANEL */
+        .info-panel { 
+            position: absolute; 
+            bottom: 15px; 
+            left: 15px; 
+            right: 15px; 
+            background: rgba(15, 23, 42, 0.95); 
+            backdrop-filter: blur(15px); 
+            border-radius: 16px; 
+            padding: 18px; 
+            border-left: 6px solid var(--success); 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4); 
+            transform: translateY(150%); 
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px;
+            z-index: 10;
+            max-height: 45vh;
+            overflow-y: auto;
+        }
+        
+        .info-panel.show { transform: translateY(0); }
+        .info-panel.error { border-left-color: var(--danger); }
+        
+        .user-name { 
+            font-size: clamp(18px, 5vw, 22px); 
+            font-weight: 800; 
+            color: white; 
+            margin-bottom: 4px; 
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.3;
+        }
+        
+        .info-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            color: #cbd5e1; 
+            font-size: clamp(13px, 3.5vw, 15px); 
+            padding: 6px 0; 
+            border-bottom: 1px solid rgba(255,255,255,0.08); 
+            line-height: 1.4;
+        }
+        
+        .info-row:last-child { border-bottom: none; }
+        
+        .info-row i { 
+            width: 20px; 
+            text-align: center; 
+            color: var(--primary); 
+            flex-shrink: 0;
+        }
+        
+        /* CONTROLS */
+        .controls { 
+            padding: 16px; 
+            background: var(--surface); 
+            flex-shrink: 0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 14px; 
+            border-top: 1px solid #334155;
+        }
+        
+        .main-btns { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+        }
+        
+        .btn { 
+            border: none; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            color: white; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 10px; 
+            font-size: clamp(15px, 4vw, 17px);
+            min-height: 54px;
+            touch-action: manipulation;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        
+        .btn-start { background: var(--primary); }
+        .btn-stop { background: var(--danger); }
+        .btn-retry { background: var(--warning); margin-top: 10px; }
+        
+        .settings-bar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            color: var(--text-secondary); 
+            font-size: clamp(13px, 3.5vw, 14px);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        /* MEDIA QUERIES */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .camera-container { min-height: 70vh; }
+            .controls { flex-direction: row; align-items: center; padding: 12px 16px; }
+            .main-btns { grid-template-columns: 1fr; gap: 8px; min-width: 130px; }
+            .settings-bar { flex-direction: column; align-items: flex-start; gap: 8px; flex: 1; }
+            .info-panel { max-height: 35vh; bottom: 10px; left: 10px; right: 10px; }
+            .liveness-badge { top: 10px; font-size: 12px; padding: 8px 16px; }
+        }
     </style>
 </head>
 <body>
-
-    <div class="loader-overlay" id="uploadLoader">
+    <!-- LOADING SCREEN -->
+    <div class="loader" id="loader">
         <div class="spinner"></div>
-        <h3 style="margin-top: 20px;">Đang gửi dữ liệu lên Google Drive...</h3>
-        <p style="color: #888; margin-top: 10px;">Vui lòng không tắt trình duyệt</p>
+        <p style="margin-top: 15px; color: #94a3b8; text-align: center; padding: 0 20px; font-size: 16px;">
+            Đang tải AI Model và Camera...
+        </p>
     </div>
 
-    <div class="modal-overlay" id="regModal">
-        <div class="reg-form">
-            <div class="form-title"><i class="fas fa-user-shield"></i> Thông tin đối tượng</div>
-            
-            <div class="form-group">
-                <label class="form-label">Mã ID (Tự động)</label>
-                <input type="text" id="userId" class="form-input" readonly>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Họ và Tên</label>
-                <input type="text" id="fullName" class="form-input" placeholder="VD: Nguyễn Văn A">
-            </div>
-
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label">Giới tính</label>
-                        <select id="gender" class="form-select">
-                            <option value="Nam">Nam</option>
-                            <option value="Nữ">Nữ</option>
-                            <option value="Khác">Khác</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="form-group">
-                        <label class="form-label">Lớp / Đơn vị</label>
-                        <input type="text" id="userClass" class="form-input" placeholder="VD: 12A1">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label">Dân tộc</label>
-                <input type="text" id="ethnicity" class="form-input" placeholder="VD: Kinh">
-            </div>
-
-            <button class="btn-start" onclick="submitRegistration()">
-                <i class="fas fa-camera"></i> Xác nhận & Bắt đầu
-            </button>
-            <div id="loadingModelMsg" style="text-align: center; margin-top: 10px; font-size: 12px; color: #888;">
-                <i class="fas fa-spinner fa-spin"></i> Đang tải AI Model ngầm...
-            </div>
-        </div>
-    </div>
-
-    <div class="flash" id="flashInfo"></div>
-    
-    <header>
-        <div style="font-weight: 700;">Face Data Pro</div>
-        <div class="user-info-pill" id="headerUserInfo">Chưa đăng nhập</div>
-        <button class="manual-btn" id="exportBtn" style="background: var(--success); opacity: 0.5;" disabled>
-            <i class="fab fa-google-drive"></i> Lưu Drive
+    <!-- ERROR STATE -->
+    <div class="error-state" id="errorState" style="display: none; position: fixed; inset: 0; background: var(--bg); z-index: 9998; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <i class="fas fa-video-slash" style="font-size: 64px; color: var(--danger); margin-bottom: 20px;"></i>
+        <h2 style="font-size: 24px; margin-bottom: 10px; color: var(--text);">Không thể khởi động Camera</h2>
+        <p id="errorMessage" style="color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5;">
+            Đã xảy ra lỗi khi truy cập camera. Vui lòng kiểm tra và thử lại.
+        </p>
+        <button class="btn btn-retry" onclick="retryCamera()">
+            <i class="fas fa-redo"></i> Thử lại Camera
         </button>
-    </header>
+    </div>
 
-    <div class="viewport">
-        <video id="video" autoplay muted playsinline></video>
-        
-        <div class="guide-box" id="guideRing">
-            <div class="msg-box">
-                <span class="main-msg" id="mainMsg" style="color: var(--primary)">CENTER</span>
-                <span class="sub-msg" id="subMsg">0/3</span>
+    <!-- HEADER -->
+    <div class="app-header">
+        <div class="brand"><i class="fas fa-scan"></i> FaceID Pro</div>
+        <div class="status-pill" id="systemStatus">Sẵn sàng</div>
+    </div>
+
+    <!-- MAIN CAMERA AREA -->
+    <div class="camera-container">
+        <div class="video-wrapper">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="overlay"></canvas>
+            
+            <!-- CAMERA PLACEHOLDER -->
+            <div class="camera-placeholder" id="cameraPlaceholder">
+                <i class="fas fa-video"></i>
+                <h3 style="font-size: 18px; margin-bottom: 10px; color: var(--text);">Camera đang tải...</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 14px;">Đang khởi động camera, vui lòng đợi</p>
+                <div class="spinner" style="width: 30px; height: 30px; margin-top: 10px;"></div>
             </div>
-        </div>
+            
+            <!-- SCAN RADAR -->
+            <div class="scan-radar" id="radar"></div>
 
-        <div class="debug-panel">
-            <div class="bar" title="Yaw"><div class="fill" id="yawFill" style="left: 50%"></div></div>
-            <div class="bar" title="Pitch"><div class="fill" id="pitchFill" style="left: 50%"></div></div>
+            <!-- LIVENESS BADGE -->
+            <div class="liveness-badge" id="livenessBadge">
+                <i class="far fa-eye"></i> Vui lòng chớp mắt
+            </div>
+
+            <!-- INFO PANEL -->
+            <div class="info-panel" id="infoPanel"></div>
         </div>
     </div>
 
+    <!-- CONTROLS -->
     <div class="controls">
-        <button class="manual-btn" id="manualToggle">Thủ công</button>
-        <button class="shutter" id="shutterBtn" disabled></button>
-        <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; border: 2px solid #fff; background: #333;">
-            <img id="lastThumb" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;">
+        <div class="main-btns">
+            <button class="btn btn-start" id="startBtn" disabled onclick="toggleSystem(true)">
+                <i class="fas fa-play"></i> Bắt đầu
+            </button>
+            <button class="btn btn-stop" id="stopBtn" disabled onclick="toggleSystem(false)">
+                <i class="fas fa-stop"></i> Dừng
+            </button>
+        </div>
+        
+        <div class="settings-bar">
+            <label class="checkbox-container" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="livenessCheck" checked> 
+                <span>Chống giả mạo</span>
+            </label>
+            
+            <button class="sync-btn" onclick="syncDataFromDrive()" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); color: var(--primary); cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: clamp(13px, 3.5vw, 14px); padding: 10px 14px; border-radius: 8px; transition: all 0.2s ease; font-weight: 600;">
+                <i class="fas fa-sync-alt"></i> Đồng bộ Drive (<span id="dbCount">0</span>)
+            </button>
         </div>
     </div>
 
     <script>
-        // --- QUAN TRỌNG: DÁN URL CỦA BẠN VÀO ĐÂY ---
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyKP16d1dEwmclrnrc8_np9vFXFl1rOpQV3NWkQdOpAx_wfLsyGu-FthsHL8I7XQkw8kg/exec';
-        // ------------------------------------------
-
-        // --- CẤU HÌNH ---
-        const MODEL_URL = 'https://cdn.jsdelivr.net/gh/cgarciagl/face-api.js@0.22.2/weights';
+        // ========================================================
+        // CONFIGURATION
+        // ========================================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwp5wxyR_ZV-1TMelVPGDLFNKAqfWd1ZjT43tJejXdUD2JRM4AUok0q53WeegmoNa0qQg/exec';
+        
         const CONFIG = {
-            ANGLES: ['center', 'left', 'right', 'up', 'down'],
-            PHOTOS_PER_ANGLE: 3,
-            SENSITIVITY: 0.35
-        };
-
-        // --- STATE ---
-        let state = {
-            user: { id: '', name: '', gender: '', class: '', ethnicity: '' },
-            angleIdx: 0,
-            photoCount: 0,
-            images: [], // { name, blob }
-            metadata: [],
-            isManual: false,
-            canCapture: false,
-            lastDetection: null,
-            modelsReady: false
-        };
-
-        const el = (id) => document.getElementById(id);
-        
-        window.onload = function() {
-            const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-            state.user.id = `ID_${randomStr}_${new Date().getFullYear()}`;
-            el('userId').value = state.user.id;
-            loadModels();
-        };
-
-        async function loadModels() {
-            try {
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-                ]);
-                state.modelsReady = true;
-                el('loadingModelMsg').innerHTML = '<span style="color:var(--success)">AI Sẵn sàng!</span>';
-            } catch (e) {
-                console.error(e);
-                el('loadingModelMsg').innerText = 'Lỗi tải AI. Vui lòng F5.';
-            }
-        }
-
-        function submitRegistration() {
-            const name = el('fullName').value.trim();
-            const cls = el('userClass').value.trim();
-            const gender = el('gender').value;
-            const eth = el('ethnicity').value.trim();
-
-            if (!name || !cls || !eth) {
-                alert("Vui lòng nhập đầy đủ thông tin!");
-                return;
-            }
-
-            state.user.name = name;
-            state.user.class = cls;
-            state.user.gender = gender;
-            state.user.ethnicity = eth;
-
-            el('headerUserInfo').innerText = `${state.user.id} | ${name}`;
-            el('regModal').style.display = 'none';
-
-            startCameraAndAI();
-        }
-
-        async function startCameraAndAI() {
-            const constraints = [
-                { video: { width: 1280, height: 720, facingMode: 'user' } },
-                { video: { width: 640, height: 480, facingMode: 'user' } },
+            MODEL_URL: 'https://cdn.jsdelivr.net/gh/cgarciagl/face-api.js@0.22.2/weights',
+            DETECTOR: new faceapi.TinyFaceDetectorOptions({ 
+                inputSize: window.innerWidth < 768 ? 160 : 320, 
+                scoreThreshold: 0.5 
+            }),
+            MATCH_THRESHOLD: 0.5,
+            
+            // Camera configuration
+            CAMERA_CONSTRAINTS: [
+                { video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } } },
+                { video: { width: { min: 320, ideal: 640, max: 1280 }, height: { min: 240, ideal: 480, max: 720 }, frameRate: { ideal: 24 } } },
                 { video: true }
-            ];
-
-            let stream = null;
-            for (let c of constraints) {
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia(c);
-                    break;
-                } catch (e) {}
-            }
-
-            if (!stream) {
-                alert("Không thể bật Camera. Hãy kiểm tra quyền truy cập.");
-                return;
-            }
-
-            el('video').srcObject = stream;
-            el('video').onloadedmetadata = () => {
-                el('video').play();
-                startAILoop();
-            };
-        }
-
-        function startAILoop() {
-            const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+            ],
             
-            setInterval(async () => {
-                if (!state.modelsReady || state.isManual) return;
-
-                const detection = await faceapi.detectSingleFace(el('video'), options)
-                    .withFaceLandmarks(true)
-                    .withFaceDescriptor();
-
-                if (detection) {
-                    const pose = calcPose(detection.landmarks);
-                    updateDebug(pose);
-                    checkPose(pose, detection.detection.score);
-                    state.lastDetection = detection;
-                } else {
-                    updateStatus(false, "Không tìm thấy mặt", true);
-                }
-            }, 100);
-        }
-
-        function calcPose(landmarks) {
-            const nose = landmarks.getNose()[3];
-            const leftEye = landmarks.getLeftEye()[0];
-            const rightEye = landmarks.getRightEye()[3];
-            const width = Math.hypot(rightEye.x - leftEye.x, rightEye.y - leftEye.y);
-            const midX = (leftEye.x + rightEye.x) / 2;
-            const midY = (leftEye.y + rightEye.y) / 2;
-            const yaw = ((nose.x - midX) / width) * -2.5; 
-            const pitch = ((nose.y - midY) / width - 0.4) * 2.0;
-
-            return { yaw, pitch };
-        }
-
-        function checkPose(pose, score) {
-            const target = CONFIG.ANGLES[state.angleIdx];
-            const T = CONFIG.SENSITIVITY;
-            let ok = false;
-            let msg = "";
-
-            if (score < 0.45) { updateStatus(false, "Mặt mờ", true); return; }
-
-            switch(target) {
-                case 'center': ok = Math.abs(pose.yaw) < T && Math.abs(pose.pitch) < T; msg = "Nhìn thẳng"; break;
-                case 'left': ok = pose.yaw < -0.2; msg = "Quay TRÁI"; break;
-                case 'right': ok = pose.yaw > 0.2; msg = "Quay PHẢI"; break;
-                case 'up': ok = pose.pitch < -0.15; msg = "Ngẩng LÊN"; break;
-                case 'down': ok = pose.pitch > 0.15; msg = "Cúi XUỐNG"; break;
-            }
-
-            updateStatus(ok, ok ? "Giữ nguyên" : msg, !ok);
-        }
-
-        function updateStatus(canCap, text, isErr) {
-            state.canCapture = canCap;
-            el('shutterBtn').disabled = !canCap;
-            el('subMsg').innerText = text;
-            el('subMsg').style.color = canCap ? 'var(--success)' : '#ccc';
-            
-            const ring = el('guideRing');
-            if (canCap) ring.className = 'guide-box active';
-            else ring.className = isErr ? 'guide-box error' : 'guide-box';
-        }
-
-        function updateDebug(pose) {
-            const toPct = v => Math.min(Math.max((v+1)/2*100, 0), 100) + '%';
-            el('yawFill').style.left = toPct(pose.yaw);
-            el('pitchFill').style.left = toPct(pose.pitch);
-        }
-
-        el('shutterBtn').addEventListener('click', () => {
-            if (!state.canCapture && !state.isManual) return;
-
-            const flash = el('flashInfo');
-            flash.classList.remove('fire');
-            void flash.offsetWidth;
-            flash.classList.add('fire');
-
-            const cvs = document.createElement('canvas');
-            cvs.width = el('video').videoWidth;
-            cvs.height = el('video').videoHeight;
-            const ctx = cvs.getContext('2d');
-            ctx.drawImage(el('video'), 0, 0);
-
-            cvs.toBlob(blob => saveData(blob), 'image/jpeg', 0.95);
-        });
-
-        function saveData(blob) {
-            const angle = CONFIG.ANGLES[state.angleIdx];
-            const fname = `${state.user.id}_${angle}_${Date.now()}.jpg`;
-
-            state.images.push({ name: fname, blob: blob });
-
-            const meta = {
-                filename: fname,
-                angle: angle,
-                user_id: state.user.id,
-                descriptor: state.lastDetection ? Array.from(state.lastDetection.descriptor) : [],
-                landmarks: state.lastDetection ? state.lastDetection.landmarks.positions : []
-            };
-            state.metadata.push(meta);
-
-            el('lastThumb').src = URL.createObjectURL(blob);
-            state.photoCount++;
-            el('subMsg').innerText = `${state.photoCount}/${CONFIG.PHOTOS_PER_ANGLE}`;
-
-            if (state.photoCount >= CONFIG.PHOTOS_PER_ANGLE) {
-                state.photoCount = 0;
-                state.angleIdx++;
-                if (state.angleIdx >= CONFIG.ANGLES.length) {
-                    finishJob();
-                } else {
-                    el('mainMsg').innerText = CONFIG.ANGLES[state.angleIdx].toUpperCase();
-                }
-            }
-        }
-
-        function finishJob() {
-            el('guideRing').className = 'guide-box active';
-            el('mainMsg').innerText = "HOÀN TẤT";
-            el('subMsg').innerText = "Sẵn sàng gửi dữ liệu!";
-            el('shutterBtn').style.display = 'none';
-            el('exportBtn').disabled = false;
-            el('exportBtn').style.opacity = 1;
-            
-            // Tự động nhắc
-            if(confirm("Đã thu thập xong! Bạn có muốn gửi dữ liệu lên Google Drive ngay không?")) {
-                el('exportBtn').click();
-            }
-        }
-
-        el('manualToggle').addEventListener('click', function() {
-            state.isManual = !state.isManual;
-            if (state.isManual) {
-                this.classList.add('active');
-                updateStatus(true, "Chế độ thủ công", false);
-            } else {
-                this.classList.remove('active');
-                state.canCapture = false;
-            }
-        });
-
-        // --- TÍNH NĂNG MỚI: UPLOAD LÊN GOOGLE DRIVE ---
-        
-        // Helper chuyển đổi Blob sang Base64
-        const blobToBase64 = (blob) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+            // Liveness Detection Configuration - THE ORIGINAL SETTINGS
+            BLINK_THRESHOLD: 0.28,  // GIỮ NGUYÊN NHƯ CODE GỐC
+            EYE_OPEN_THRESHOLD: 0.30
         };
 
-        el('exportBtn').addEventListener('click', async () => {
-            if (!GOOGLE_SCRIPT_URL.startsWith('https')) {
-                alert("Bạn chưa dán link Web App của Google Script vào code!");
+        // ========================================================
+        // STATE MANAGEMENT - THE ORIGINAL STRUCTURE
+        // ========================================================
+        let state = {
+            db: null,
+            faceMatcher: null,
+            users: [],
+            isRunning: false,
+            loopId: null,
+            cameraStream: null,
+            cameraRetryCount: 0,
+            maxCameraRetries: 3,
+            
+            // THE ORIGINAL LIVENESS STATE - ĐÚNG NHƯ CODE GỐC
+            blinkDetected: false,  // CHỈ 1 BIẾN ĐƠN GIẢN
+            noFaceTimer: null
+        };
+
+        // ========================================================
+        // DOM ELEMENTS
+        // ========================================================
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('overlay');
+        const infoPanel = document.getElementById('infoPanel');
+        const statusBadge = document.getElementById('systemStatus');
+        const radar = document.getElementById('radar');
+        const livenessBadge = document.getElementById('livenessBadge');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const loader = document.getElementById('loader');
+        const errorState = document.getElementById('errorState');
+        const errorMessage = document.getElementById('errorMessage');
+        const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+
+        // ========================================================
+        // DATABASE FUNCTIONS
+        // ========================================================
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('FaceID_Cloud_Sync', 1);
+                
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('profiles')) {
+                        db.createObjectStore('profiles', { keyPath: 'name' });
+                    }
+                };
+                
+                req.onsuccess = (e) => {
+                    state.db = e.target.result;
+                    loadUsers();
+                    resolve();
+                };
+                
+                req.onerror = (e) => {
+                    console.error('IndexedDB error:', e.target.error);
+                    reject(e.target.error);
+                };
+            });
+        }
+
+        function loadUsers() {
+            if (!state.db) return;
+            
+            const transaction = state.db.transaction('profiles', 'readonly');
+            const store = transaction.objectStore('profiles');
+            const request = store.getAll();
+            
+            request.onsuccess = (e) => {
+                state.users = e.target.result;
+                document.getElementById('dbCount').innerText = state.users.length;
+                
+                if (state.users.length > 0) {
+                    const labeledDescriptors = state.users.map(user => 
+                        new faceapi.LabeledFaceDescriptors(
+                            user.name, 
+                            user.descriptors.map(desc => new Float32Array(desc))
+                        )
+                    );
+                    
+                    state.faceMatcher = new faceapi.FaceMatcher(
+                        labeledDescriptors, 
+                        CONFIG.MATCH_THRESHOLD
+                    );
+                } else {
+                    state.faceMatcher = null;
+                }
+            };
+        }
+
+        // ========================================================
+        // CAMERA FUNCTIONS
+        // ========================================================
+        async function startCamera() {
+            try {
+                cameraPlaceholder.style.display = 'flex';
+                video.style.display = 'none';
+                
+                let stream = null;
+                let lastError = null;
+                
+                // Try each constraint
+                for (let i = 0; i < CONFIG.CAMERA_CONSTRAINTS.length; i++) {
+                    const constraints = CONFIG.CAMERA_CONSTRAINTS[i];
+                    
+                    try {
+                        const timeoutPromise = new Promise((_, reject) => {
+                            setTimeout(() => reject(new Error('Camera timeout')), 8000);
+                        });
+                        
+                        const mediaPromise = navigator.mediaDevices.getUserMedia(constraints);
+                        stream = await Promise.race([mediaPromise, timeoutPromise]);
+                        break;
+                        
+                    } catch (err) {
+                        lastError = err;
+                        if (stream) stream.getTracks().forEach(track => track.stop());
+                    }
+                }
+                
+                if (!stream) throw lastError || new Error('Cannot access camera');
+                
+                state.cameraStream = stream;
+                video.srcObject = stream;
+                
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => resolve();
+                    setTimeout(() => resolve(), 2000);
+                });
+                
+                video.style.display = 'block';
+                cameraPlaceholder.style.display = 'none';
+                canvas.width = video.videoWidth || 640;
+                canvas.height = video.videoHeight || 480;
+                
+                state.cameraRetryCount = 0;
+                loader.style.display = 'none';
+                errorState.style.display = 'none';
+                startBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                
+                if (state.cameraStream) {
+                    state.cameraStream.getTracks().forEach(track => track.stop());
+                    state.cameraStream = null;
+                }
+                
+                showCameraError(error);
+            }
+        }
+
+        function showCameraError(error) {
+            loader.style.display = 'none';
+            errorState.style.display = 'flex';
+            cameraPlaceholder.style.display = 'none';
+            
+            let message = 'Lỗi camera: ';
+            if (error.name === 'NotAllowedError') message += 'Bị từ chối quyền';
+            else if (error.name === 'NotFoundError') message += 'Không tìm thấy camera';
+            else if (error.name === 'AbortError') message += 'Timeout';
+            else message += error.message;
+            
+            errorMessage.textContent = message;
+        }
+
+        function retryCamera() {
+            if (state.cameraRetryCount >= state.maxCameraRetries) return;
+            state.cameraRetryCount++;
+            errorState.style.display = 'none';
+            loader.style.display = 'flex';
+            setTimeout(startCamera, 1000);
+        }
+
+        // ========================================================
+        // LIVENESS DETECTION - THE ORIGINAL CODE (FIXED)
+        // ========================================================
+        function getEAR(eye) {
+            // ĐÂY LÀ CÔNG THỨC GỐC - ĐỪNG THAY ĐỔI
+            const d1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+            const d2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+            const d3 = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+            return (d1 + d2) / (2 * d3);
+        }
+
+        // ========================================================
+        // CORE SYSTEM FUNCTIONS - THE ORIGINAL LOGIC
+        // ========================================================
+        async function init() {
+            try {
+                await initDB();
+                
+                // Load AI models
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
+                    faceapi.nets.faceLandmark68TinyNet.loadFromUri(CONFIG.MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL)
+                ]);
+                
+                console.log('✅ AI Models loaded');
+                
+                // Start camera
+                await startCamera();
+                
+                // Auto-sync
+                setTimeout(syncDataFromDrive, 1000);
+                
+            } catch (error) {
+                console.error('Init error:', error);
+            }
+        }
+
+        function toggleSystem(active) {
+            state.isRunning = active;
+            startBtn.disabled = active;
+            stopBtn.disabled = !active;
+            
+            if (active) {
+                radar.style.display = 'block';
+                statusBadge.innerText = "Đang quét...";
+                statusBadge.className = "status-pill scanning";
+                
+                // Reset liveness state
+                state.blinkDetected = false;
+                
+                runLoop();
+            } else {
+                cancelAnimationFrame(state.loopId);
+                if (canvas.getContext) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                resetToIdle();
+            }
+        }
+
+        async function runLoop() {
+            if (!state.isRunning) return;
+            
+            if (!video.videoWidth || !video.videoHeight) {
+                state.loopId = requestAnimationFrame(runLoop);
+                return;
+            }
+            
+            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+            
+            try {
+                const detections = await faceapi.detectAllFaces(
+                    video, 
+                    CONFIG.DETECTOR
+                ).withFaceLandmarks(true).withFaceDescriptors();
+                
+                const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const useLiveness = document.getElementById('livenessCheck').checked;
+                
+                if (resizedDetections.length > 0) {
+                    radar.style.display = 'none';
+                    
+                    const detection = resizedDetections[0];
+                    const box = detection.detection.box;
+                    let isReal = false;
+                    
+                    // ============================================
+                    // THE ORIGINAL LIVENESS DETECTION CODE - FIXED
+                    // ============================================
+                    if (useLiveness) {
+                        const ear = (getEAR(detection.landmarks.getLeftEye()) + getEAR(detection.landmarks.getRightEye())) / 2;
+                        
+                        console.log("EAR Value:", ear); // Debug log
+                        
+                        // FIX 1: THÊM ĐIỀU KIỆN ĐỂ DỄ PHÁT HIỆN CHỚP MẮT
+                        if (ear < CONFIG.BLINK_THRESHOLD) {
+                            state.blinkDetected = true;
+                            console.log("Blink detected! EAR:", ear); // Debug log
+                        }
+                        
+                        // FIX 2: HIỂN THỊ TRẠNG THÁI
+                        if (state.blinkDetected) {
+                            isReal = true;
+                            showLivenessBadge(true);
+                        } else {
+                            showLivenessBadge(false);
+                        }
+                    } else {
+                        isReal = true;
+                        livenessBadge.classList.remove('show');
+                    }
+                    
+                    // ============================================
+                    // FIX CANVAS MIRRORING - QUAN TRỌNG!
+                    // ============================================
+                    // Video bị mirror, nhưng landmarks không bị mirror
+                    // Vì vậy, chúng ta cần điều chỉnh tọa độ box
+                    const mirroredBox = {
+                        x: canvas.width - box.x - box.width, // Mirror horizontally
+                        y: box.y,
+                        width: box.width,
+                        height: box.height
+                    };
+                    
+                    const boxColor = isReal ? '#10b981' : '#f59e0b';
+                    new faceapi.draw.DrawBox(mirroredBox, {
+                        label: " ",
+                        boxColor: boxColor,
+                        lineWidth: 2
+                    }).draw(canvas);
+                    
+                    // Face recognition
+                    if (isReal && state.faceMatcher) {
+                        const match = state.faceMatcher.findBestMatch(detection.descriptor);
+                        showInfoResult(match.label);
+                    }
+                    
+                } else {
+                    // No face detected
+                    radar.style.display = 'block';
+                    statusBadge.innerText = "Đang tìm kiếm...";
+                    statusBadge.className = "status-pill scanning";
+                    infoPanel.classList.remove('show');
+                    livenessBadge.classList.remove('show');
+                    
+                    // FIX 3: RESET BLINK DETECTION KHI KHÔNG CÓ MẶT
+                    state.blinkDetected = false;
+                }
+                
+            } catch (error) {
+                console.error('Run loop error:', error);
+            }
+            
+            state.loopId = requestAnimationFrame(runLoop);
+        }
+
+        function showLivenessBadge(success) {
+            livenessBadge.classList.add('show');
+            if (success) {
+                livenessBadge.innerHTML = '<i class="fas fa-check"></i> Xác thực OK';
+                livenessBadge.style.color = 'var(--success)';
+                livenessBadge.style.borderColor = 'var(--success)';
+            } else {
+                livenessBadge.innerHTML = '<i class="far fa-eye"></i> Hãy chớp mắt';
+                livenessBadge.style.color = 'white';
+                livenessBadge.style.borderColor = 'rgba(255,255,255,0.2)';
+            }
+        }
+
+        function showInfoResult(label) {
+            if (infoPanel.dataset.currentUser === label && infoPanel.classList.contains('show')) return;
+            
+            infoPanel.dataset.currentUser = label;
+            infoPanel.classList.add('show');
+            
+            if (label === 'unknown') {
+                infoPanel.className = 'info-panel show error';
+                infoPanel.innerHTML = `
+                    <div class="user-name">CẢNH BÁO: NGƯỜI LẠ</div>
+                    <div class="info-row">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Không có dữ liệu trong hệ thống.</span>
+                    </div>
+                `;
+            } else {
+                const user = state.users.find(u => u.name === label);
+                if (user) {
+                    infoPanel.className = 'info-panel show';
+                    infoPanel.innerHTML = `
+                        <div class="user-name">${user.name}</div>
+                        <div class="info-row">
+                            <i class="fas fa-id-badge"></i>
+                            <span>ID: ${user.id}</span>
+                        </div>
+                        <div class="info-row">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Đơn vị: ${user.class}</span>
+                        </div>
+                        <div class="info-row" style="color: var(--success); font-weight: 600;">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Điểm danh thành công</span>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function resetToIdle() {
+            radar.style.display = 'none';
+            statusBadge.innerText = "Sẵn sàng";
+            statusBadge.className = "status-pill";
+            infoPanel.classList.remove('show');
+            livenessBadge.classList.remove('show');
+            
+            // Reset liveness
+            state.blinkDetected = false;
+        }
+
+        // ========================================================
+        // GOOGLE DRIVE SYNC
+        // ========================================================
+        async function syncDataFromDrive() {
+            if (!API_URL || API_URL.includes("DÁN_URL")) {
+                alert("⚠️ Chưa cấu hình URL Google Script.");
                 return;
             }
 
-            el('uploadLoader').style.display = 'flex'; // Hiện màn hình chờ
+            statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu Cloud...';
+            statusBadge.className = "status-pill syncing";
 
             try {
-                // 1. Chuyển đổi toàn bộ ảnh sang Base64
-                let imagesBase64 = [];
-                for (let img of state.images) {
-                    let b64 = await blobToBase64(img.blob);
-                    imagesBase64.push({
-                        name: img.name,
-                        data: b64
-                    });
+                const response = await fetch(API_URL);
+                const cloudData = await response.json();
+
+                if (!Array.isArray(cloudData)) throw new Error("Dữ liệu trả về lỗi");
+
+                const tx = state.db.transaction('profiles', 'readwrite');
+                const store = tx.objectStore('profiles');
+
+                let count = 0;
+                for (const user of cloudData) {
+                    const des = user.records
+                        .filter(r => r.descriptor)
+                        .map(r => new Float32Array(Object.values(r.descriptor)));
+                    
+                    if (des.length > 0) {
+                        store.put({
+                            ...user.user_profile,
+                            descriptors: des,
+                            timestamp: Date.now()
+                        });
+                        count++;
+                    }
                 }
 
-                // 2. Tạo gói dữ liệu
-                const payload = {
-                    user_profile: state.user,
-                    collection_date: new Date().toISOString(),
-                    total_images: state.images.length,
-                    records: state.metadata,
-                    images_base64: imagesBase64
+                tx.oncomplete = () => {
+                    console.log(`✅ Đã đồng bộ ${count} người từ Google Drive.`);
+                    loadUsers();
+                    
+                    statusBadge.innerText = "Đã đồng bộ xong";
+                    statusBadge.className = "status-pill locked";
+                    
+                    setTimeout(() => {
+                        statusBadge.innerText = "Sẵn sàng";
+                        statusBadge.className = "status-pill";
+                    }, 2000);
                 };
 
-                // 3. Gửi lên Google Script
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors', // Bắt buộc để tránh lỗi chặn tên miền chéo
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+            } catch (err) {
+                console.error("Lỗi Sync:", err);
+                statusBadge.innerText = "Lỗi đồng bộ";
+                statusBadge.className = "status-pill";
+                alert("Không thể tải dữ liệu từ Drive.");
+            }
+        }
 
-                // Tắt màn hình chờ
-                el('uploadLoader').style.display = 'none';
-                
-                alert("✅ Thành công! Dữ liệu đã được gửi lên Google Drive.");
-                
-                // Reset để nhập người tiếp theo
-                location.reload();
+        // ========================================================
+        // UTILITY FUNCTIONS
+        // ========================================================
+        let lastSpeak = 0;
+        function speak(txt) {
+            const now = Date.now();
+            if (now - lastSpeak > 4000) {
+                window.speechSynthesis.speak(new SpeechSynthesisUtterance(txt));
+                lastSpeak = now;
+            }
+        }
 
-            } catch (error) {
-                console.error(error);
-                el('uploadLoader').style.display = 'none';
-                alert("❌ Lỗi khi gửi: " + error.message);
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--surface)'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 1000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // ========================================================
+        // EVENT LISTENERS
+        // ========================================================
+        window.addEventListener('resize', function() {
+            if (video.videoWidth && video.videoHeight) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
             }
         });
+        
+        window.addEventListener('beforeunload', function() {
+            if (state.isRunning) toggleSystem(false);
+            if (state.cameraStream) {
+                state.cameraStream.getTracks().forEach(track => track.stop());
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', init);
+
+        console.log('📱 AI FaceID Pro - Original Liveness Detection');
 
     </script>
 </body>
